@@ -87,8 +87,8 @@ class Newbooks_model extends CI_Model{
 		$msg=$this->db->query("DELETE FROM copies WHERE ocn = '".$ocn."';");
 	}
 	
-	public function getOINfromOCN($ocn){
-		$data=$this->db->query("SELECT * FROM items WHERE ocn = '".$ocn."';");
+	public function getOINfromOCN($ocn,$date){
+		$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$orderItemNum=$result->orderItemNum;
@@ -118,16 +118,20 @@ class Newbooks_model extends CI_Model{
 				$copiesList=array();
 				$data2=$this->db->get_where('copies',array('ocn' => $ocn));
 				foreach($data2->result() as $result2){
-					array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+					if(strlen($result2->callNum)>0){
+						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+					}
 				}
-				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+				if(sizeOf($copiesList>0)){
+					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+				}
 			}
 		}
 		return $resultsList;
 	}
 	
 	public function loadExpecting($date){
-		$data=$this->db->query("SELECT * FROM items WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV') AND orderDate >= '".$date."';");
+		$data=$this->db->query("SELECT * FROM items WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -140,7 +144,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadBranchE(){
-		$data=$this->db->query("SELECT * FROM copies WHERE branch = '' OR callNum = '';");
+		$data=$this->db->query("SELECT * FROM copies WHERE (branch = '' OR callNum = '');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -158,7 +162,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadCallProc(){
-		$data=$this->db->query("SELECT * FROM copies WHERE callNum = 'in processing' OR callNum = 'processing' OR callNum = 'in process';");
+		$data=$this->db->query("SELECT * FROM copies WHERE (callNum = 'in processing' OR callNum = 'processing' OR callNum = 'in process');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -175,30 +179,109 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
-	public function loadList2($fund,$date){
-		if($fund=='All'){
-			$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
-			//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';";
+	public function loadList2($type,$facet,$date,$ageDeterminant){		//For fund/format and date
+		if($date=='ordered'){
+			$statuteLimitations=$this->newbooksconfig->getStatute();
+			if($type=='subject'){
+				if($facet=='All'){
+					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."';");
+				}
+				else{
+					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."';");
+				}
+			}
+			else if($type=='format'){
+				switch($facet){
+					case 'books':
+						$sqlstring="matType LIKE 'BOOK%' OR matType='OBJECT'";
+					break;
+					case 'videos':
+						$sqlstring="matType LIKE 'VIDEO%'";
+					break;
+					default:
+						$sqlstring="matType='BOOK'";
+				}
+				if($ageDeterminant=='order'){
+					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
+				}
+			}
 		}
 		else{
-			$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$fund."';");
+			$dateInTime=strtotime($date);
+			if($type=='subject' && $ageDeterminant=='order'){
+				if($facet=='All'){
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
+				}
+				else{
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."';");
+				}
+			}
+			else if($type=='subject' && $ageDeterminant=='receipt'){
+				if($facet=='All'){
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED';");
+				}
+				else{
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."';");
+				}
+			}
+			else if($type=='format'){
+				switch($facet){
+					case 'books':
+						$sqlstring="matType LIKE 'BOOK%' OR matType='OBJECT'";
+					break;
+					case 'videos':
+						$sqlstring="matType LIKE 'VIDEO%'";
+					break;
+					default:
+						$sqlstring="matType='BOOK'";
+				}
+				if($ageDeterminant=='order'){
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");");
+				}
+				else if($ageDeterminant=='receipt'){
+					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.");");
+				}
+				//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");<br />".var_dump($data);
+			}
 		}
 		$resultsList=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
 			$copiesList=array();
 			$data2=$this->db->get_where('copies',array('ocn' => $ocn));
+			$copyIgnore=false;
 			foreach($data2->result() as $result2){
-				array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+				if($date!='ordered'&&strlen($result2->callNum)>0){
+					if($ageDeterminant=='order'){
+						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+					}
+					else if($ageDeterminant=='receipt'&&strtotime($result2->dateAppear)>$dateInTime){
+						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+					}
+				}
+				else if($date=='ordered'&&strlen($result2->callNum)<=0){		//Copies exist but at least one has no call number, so not yet ready
+					array_push($copiesList,array($result2->branch," ","On order"));
+				}
+				else if($date=='ordered'&&strlen($result2->callNum)>=0){
+					$copyIgnore=true;											//Alert below logic that copiesList, if empty, is so because item has arrived, not because no copies found
+				}
 			}
-			array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+			if(sizeOf($copiesList)>0){
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+			}
+			else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType));
+			}
 		}
 		return $resultsList;
 	}
 	
-	public function receiveItem($orderItemNum){
+	public function receiveItem($orderItemNum,$orderStat,$fund){
 		$data=$this->db->query("UPDATE items SET receiptStat= 'RECEIVED' WHERE orderItemNum='".$orderItemNum."'");
 		$dateRN=date("Y:m:d");
+		if($fund!=""&&$orderStat!=""){
+			$data=$this->db->query("UPDATE items SET orderStat= '".$orderStat."', fund='".$fund."' WHERE orderItemNum='".$orderItemNum."'");
+		}
 		$data=$this->db->query("UPDATE items SET receiptDate= '".$dateRN."' WHERE orderItemNum='".$orderItemNum."'");
 		return $data;
 	}

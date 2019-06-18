@@ -1,9 +1,13 @@
 <script type='text/javascript' src='https://jaredcowing.com/newBooks/newBooks.js'></script>
-Show me books the library acquired for this subject:
+Show me print (physical) items the library has bought that are:
 <br />
 <select id='subjectChooser'>
 	<!--<option value='all'>All subjects</option>-->
-	<option value='All'>All subjects</option>
+	<!--<optgroup label='Format'>
+	<option value='SFormat_books' <?php if($fund=='SFORMAT_books'){echo "selected";}?>>books</option>
+	<option value='SFormat_videos' <?php if($fund=='SFORMAT_videos'){echo "selected";}?>>videos</option>
+	</optgroup>-->
+	<optgroup label='Subject'>
 	<option value='Accounting & Finance' <?php if($fund=='Accounting & Finance'){echo "selected";}?>>Accounting & Finance</option>
 	<option value='Animation' <?php if($fund=='Animation'){echo "selected";}?>>Animation</option>
 	<option value='Anthropology' <?php if($fund=='Anthropology'){echo "selected";}?>>Anthropology</option>
@@ -29,16 +33,19 @@ Show me books the library acquired for this subject:
 	<option value='Psychology' <?php if($fund=='Psychology'){echo "selected";}?>>Psychology</option>
 	<option value='Science & Math' <?php if($fund=='Science & Math'){echo "selected";}?>>Science & Math</option>
 	<option value='Urban Studies' <?php if($fund=='Urban Studies'){echo "selected";}?>>Urban Studies</option>
+	</optgroup>
+	<option value='All'>Show me everything!</option>
 </select>
 <br /><br />
-Show me books and DVDs that have arrived in the library in the past:
+...and that have arrived in the library in the past:
 <br />
 <select id='dateChooser'>
-	<option value='1M' <?php if($age=='1M'){echo "selected";}?>>1 month</option>
-	<option value='3M' <?php if($age=='3M'){echo "selected";}?>>3 months</option>
+	<!--<option value='1M' <?php if($age=='1M'){echo "selected";}?>>1 month</option>-->
+	<option value='3M' <?php if($age=='3M'||($age!='1M'&&$age!='6M'&&$age!='1Y'&&$age!='2Y')){echo "selected";}?>>3 months</option>
 	<option value='6M' <?php if($age=='6M'){echo "selected";}?>>6 months</option>
 	<option value='1Y' <?php if($age=='1Y'){echo "selected";}?>>1 year</option>
-	<option value='2Y' <?php if($age=='2Y'){echo "selected";}?>>2 years</option>
+	<!--<option value='2Y' <?php if($age=='2Y'){echo "selected";}?>>2 years</option>-->
+	<option value='order' <?php if($age=='order'){echo "selected";}?>>Show me what will be arriving soon!</option>
 </select>
 
-<div id='newBooksGo'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_forward_black_24dp_2x.png' alt='Execute new books search'></img></div>
+<div id='newBooksGo' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_forward_black_24dp_2x.png' alt='Execute new books search'></img></div>

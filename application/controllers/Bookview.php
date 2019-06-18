@@ -11,11 +11,21 @@ class Bookview extends CI_Controller {
 		$this->load->library('form_validation');
 		$this->load->library('newBooksConfig');
 	}
-
+	
 	public function index()
 	{
-		$data['age']='';
-		$data['fund']='';
+		$data['age']="";
+		$data['fund']="";
+		$this->load->view('templates/header');
+		$this->load->view('templates/wumenu',$data);
+		$this->load->view('templates/footer');
+	}
+
+	public function repeat($age,$facet)
+	{
+		$facet=urldecode($facet);
+		$data['age']=$age;
+		$data['fund']=$facet;
 		$this->load->view('templates/header');
 		$this->load->view('templates/wumenu',$data);
 		$this->load->view('templates/footer');
@@ -27,7 +37,7 @@ class Bookview extends CI_Controller {
 		$this->displayBookResults($list);
 	}
 	
-	public function viewFA($fund,$age){
+	public function viewFA($fund,$age){	//Fund variable may now also contain format, might re-name this
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
 			$fund=substr($fund,0,$whereisit)."&".substr($fund,$whereisit+6);
@@ -39,6 +49,8 @@ class Bookview extends CI_Controller {
 		$fund=urldecode($fund);
 		$date=date('Y-m-d');
 		$dateCutoff="";
+		$monthPad=$this->newbooksconfig->getMonthPad();
+		$ageDeterminant=$this->newbooksconfig->getAgeDeterminant();
 		switch($age){
 			case '2Y':
 				$dateCutoff=strval(intval(substr($date,0,4))-2).substr($date,4);
@@ -47,52 +59,64 @@ class Bookview extends CI_Controller {
 				$dateCutoff=strval(intval(substr($date,0,4))-1).substr($date,4);
 				break;
 			case '6M':
-				if(strval(substr($date,5,6))>=10){
-					$newMonth=strval(intval(substr($date,5,6))-9);			//Changing to 9 so that there's some processing lead time; revert to 6 if using "data available" vs "date ordered"
+				if(strval(substr($date,5,6))>=(7+$monthPad)){
+					$newMonth=strval(intval(substr($date,5,6))-6-$monthPad);			//Changing to 9 so that there's some processing lead time; revert to 6 if using "data available" vs "date ordered"
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+3);			//See above note, but this number is inverted to going to previous year
+					$newMonth=strval(intval(substr($date,5,6))+(6-$monthPad));			//See above note, but this number is inverted to going to previous year
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
 			case '3M':
-				if(strval(substr($date,5,6))>=7){
-					$newMonth=strval(intval(substr($date,5,6))-6);			//See above
+				if(strval(substr($date,5,6))>=(4+$monthPad)){
+					$newMonth=strval(intval(substr($date,5,6))-3-$monthPad);			//See above
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+6);			//See above
+					$newMonth=strval(intval(substr($date,5,6))+(9-$monthPad));			//See above
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
 			case '1M':
-				if(strval(substr($date,5,6))>=4){
-					$newMonth=strval(intval(substr($date,5,6))-3);			//See above
+				if(strval(substr($date,5,6))>=(2+$monthPad)){
+					$newMonth=strval(intval(substr($date,5,6))-(1+$monthPad));			//See above
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+9);			//See above
+					$newMonth=strval(intval(substr($date,5,6))+(11-$monthPad));			//See above
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
 		}
-		if(strlen($dateCutoff)>0){
-			$list=$this->Newbooks_model->loadList2($fund,$dateCutoff);
-			if($fund=="Applied Computer Science"){										//Find a better way to handle changed fund names or multiple-fund queries. Using fund code might help with the former.
-				$list2=$this->Newbooks_model->loadList2("Media Technology",$dateCutoff);
-				$list=array_merge($list,$list2);
+		if(strlen($dateCutoff)>0||$age=='order'){
+			if(strpos($fund,"SFormat_")!==false){
+				$type='format';
+				$facet=substr($fund,8);
 			}
-			$this->displayBookResults($list,$fund,$dateCutoff,$age);					//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
+			else{
+				$type='subject';
+				$facet=$fund;
+			}
+			if($age=='order'){
+				$dateCutoff='ordered';
+			}
+			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
+			/*
+			if($fund=="Applied Computer Science"){										//Find a better way to handle changed fund names or multiple-fund queries. Using fund code might help with the former.
+				$list2=$this->Newbooks_model->loadList2("subject","Media Technology",$dateCutoff);
+				$list=array_merge($list,$list2);
+			}*/
+			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
 		}
 	}
 	
@@ -105,43 +129,72 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
-	public function displayBookResults($list,$fund,$dateCutoff,$age){
+	public function displayBookResults($type,$list,$facet,$dateCutoff,$age){
 		$this->load->view('templates/header');
+		if($type=='format'){
+			$fundPad='SFORMAT_';
+		}
+		else{
+			$fundPad="";
+		}
 		if(empty($list)){
-			echo "<br />There's nothing new to show for this subject & time. Try extending how far back to show new books from.<br /><br />";
+			echo "<br />There's nothing new to show for this ".$type." & time. Try extending how far back to show new books from.<br /><br />";
 			$data['age']=$age;
-			$data['fund']=$fund;
+			$data['fund']=$facet;		//Consider renaming data sent to view since can now contain format
 			$this->load->view('templates/wumenu',$data);
 		}
 		else{
-			echo "<a href='https://jaredcowing.com/newBooks/index.php/Bookview'><div id='newBooksBack'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
+			echo "<a href='https://jaredcowing.com/newBooks/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
-			if($fund=='All'){ echo "All newly bought books and videos from the last "; }
-			else{ echo "New ".$fund." books and videos bought from the last "; }
-			switch($age){
-				case '1M':
-					echo "1 month";
-					break;
-				case '3M':
-					echo "3 months";
-					break;
-				case '6M':
-					echo "6 months";
-					break;
-				case '1Y':
-					echo "1 year";
-					break;
-				case '2Y':
-					echo "2 years";
-					break;
+			if($dateCutoff!='ordered'){
+				if($facet=='All'){ echo "All newly bought books and videos from the last "; }
+				else if($type=='subject'){ echo "New ".$facet." books and videos bought from the last "; }
+				else if($type=='format'){ echo "New ".$facet." bought from the last "; }
+				switch($age){
+					case '1M':
+						echo "1 month";
+						break;
+					case '3M':
+						echo "3 months";
+						break;
+					case '6M':
+						echo "6 months";
+						break;
+					case '1Y':
+						echo "1 year";
+						break;
+					case '2Y':
+						echo "2 years";
+						break;
+				}
 			}
-			echo ":</strong></div><br />";
-
+			else if($dateCutoff=='ordered'){
+				if($facet=='All'){ echo "All books and videos expected soon"; }
+				else if($type=='subject'){ echo "New ".$facet." books and videos expected soon"; }
+				else if($type=='format'){ echo "New ".$facet." expected soon"; }
+			}
+			echo ":</strong></div><br /><br /><br />";
 		}
 		$ocns=array();
 		foreach($list as $result){
 			$dupFlag=false;
+			$start=0;
+			while(strpos($result[0],'?',$start)!=false){		//My database doesn't handle extended unicode characters, so remove any question mark not followed by a space.
+				$point=strpos($result[0],'?',$start);
+				if(strlen($result[0])>$point+1&&$result[0][$point+1]==' '){
+					$start++;
+				}
+				else{
+					if($point>0){
+						$result[0]=substr($result[0],0,$point).substr($result[0],$point+1);
+					}
+					else{
+						$result[0]=substr($result[0],$point+1);
+					}
+					$start=0;
+				}
+			}
 			foreach($ocns as $ocn){
 				if($result[1]==$ocn){
 					$dupFlag=true;

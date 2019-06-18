@@ -134,7 +134,7 @@ class Bookfeed extends CI_Controller {
 			}
 		}
 		if($target=='items'){							//This is purely for data reference purposes. Live method is autoLoadItems which will be called in cascading manner from load/orders
-			$resourceURLp2="/purchaseorders/PO-2017-21/items?itemsPerPage=400";
+			$resourceURLp2="/purchaseorders/PO-2018-15/items?itemsPerPage=400";
 			$resourceURLp1="https://acq.sd00.worldcat.org";
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 			$dataP=json_decode($data);
@@ -153,7 +153,7 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 
-	public function autoLoadItems($orderNum){							//Could be called from URL but generally this function will only be accessed from load order function
+	public function autoLoadItems($orderNum){							//Could be called from URL but generally this function will only be utilized by load order function
 		$resourceURLp2="/purchaseorders/".$orderNum."/items?itemsPerPage=400";
 		$resourceURLp1="https://acq.sd00.worldcat.org";
 		$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
@@ -196,22 +196,29 @@ class Bookfeed extends CI_Controller {
 			if(strlen($isbn)>0&&strpos($isbn," ")>0){
 				$isbn=substr($isbn,0,strpos($isbn," ")-1);
 			}
-			if(count($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName)>0){
-				$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName;			//Revisit if issue arises with multi-copy orders
+			if(property_exists($orderItem,"copyConfigs")){
+				if(count($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName)>0){
+					$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName;			//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$fund="";
+				}
+				if(count($orderItem->copyConfigs->copyConfig[0]->receiptStatus)>0){
+					$receiptStat=$orderItem->copyConfigs->copyConfig[0]->receiptStatus;						//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$receiptStat="";
+				}
+				if(count($orderItem->copyConfigs->copyConfig[0]->orderStatus)>0){
+					$orderStat=$orderItem->copyConfigs->copyConfig[0]->orderStatus;							//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$orderStat="";
+				}
 			}
 			else{
 				$fund="";
-			}
-			if(count($orderItem->copyConfigs->copyConfig[0]->receiptStatus)>0){
-				$receiptStat=$orderItem->copyConfigs->copyConfig[0]->receiptStatus;						//Revisit if issue arises with multi-copy orders
-			}
-			else{
 				$receiptStat="";
-			}
-			if(count($orderItem->copyConfigs->copyConfig[0]->orderStatus)>0){
-				$orderStat=$orderItem->copyConfigs->copyConfig[0]->orderStatus;							//Revisit if issue arises with multi-copy orders
-			}
-			else{
 				$orderStat="";
 			}
 			if(count($orderItem->insertTime)>0){
@@ -278,6 +285,7 @@ class Bookfeed extends CI_Controller {
 				}
 				//echo $branch.$location.$callNum;
 				$msg=$this->Newbooks_model->saveCopy($ocn,$branch,$location,$callNum,$barcode);
+				echo "<br />".$branch." ".$location." ".$callNum." ".$barcode. "copy loaded";
 			}
 		}
 		else{
@@ -286,41 +294,56 @@ class Bookfeed extends CI_Controller {
 	}
 	
 	public function autoUpdateReceived($ph){
-		$list=$this->Newbooks_model->loadExpecting("2017-09-01");
+		$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
+		$list=$this->Newbooks_model->loadExpecting($statuteLimitations);
 		foreach($list as $orderItemNum=>$item){
 			$resourceURLp2="/purchaseorders/".$item[0]."/items/".$orderItemNum;
 			$resourceURLp1="https://acq.sd00.worldcat.org";
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 			$dataP=json_decode($data);
+			if(property_exists($dataP,"copyConfigs")){
+				if(count($dataP->copyConfigs->copyConfig>0) && !empty($dataP->copyConfigs->copyConfig[0]->booking) && count($dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName)>0){
+					$fund=$dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName;			//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$fund="";
+				}
+				if(count($dataP->copyConfigs->copyConfig[0]->receiptStatus)>0){
+					$receiptStat=$dataP->copyConfigs->copyConfig[0]->receiptStatus;				//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$receiptStat="";
+				}
+				if(count($dataP->copyConfigs->copyConfig[0]->orderStatus)>0){
+					$orderStat=$dataP->copyConfigs->copyConfig[0]->orderStatus;					//Revisit if issue arises with multi-copy orders
+				}
+				else{
+					$orderStat="";
+				}
 
-			if(count($dataP->copyConfigs->copyConfig[0]->receiptStatus)>0){
-				$receiptStat=$dataP->copyConfigs->copyConfig[0]->receiptStatus;				//Revisit if issue arises with multi-copy orders
-			}
-			else{
-				$receiptStat="";
-			}
-			if(count($dataP->copyConfigs->copyConfig[0]->orderStatus)>0){
-				$orderStat=$dataP->copyConfigs->copyConfig[0]->orderStatus;					//Revisit if issue arises with multi-copy orders
-			}
-			else{
-				$orderStat="";
-			}
-
-			echo "<br /><br />The item ".$orderItemNum." is currently ".$orderStat." and ".$receiptStat;
-			
-			if($receiptStat=='RECEIVED'){
-				$this->autoLoadCopies($item[1]);
-				$msg=$this->Newbooks_model->receiveItem($orderItemNum);
-				echo "______________________ RECEIVING ".$orderItemNum." ________________________";
-			}
-			if($orderStat=='CANCELLED'){
-				$msg=$this->Newbooks_model->updateCancelled($orderItemNum);
-				echo "______________________ MARKING CANCELLED _________________________";
+				echo "<br /><br />The item ".$orderItemNum." from ".$fund."fund is currently ".$orderStat." and ".$receiptStat;
+				
+				if($receiptStat=='RECEIVED'){
+					$this->autoLoadCopies($item[1]);
+					$msg=$this->Newbooks_model->receiveItem($orderItemNum,$orderStat,$fund);
+					echo "______________________ RECEIVING ".$orderItemNum." ________________________";
+				}
+				if($orderStat=='CANCELLED'){
+					$msg=$this->Newbooks_model->updateCancelled($orderItemNum);
+					echo "______________________ MARKING CANCELLED _________________________";
+				}
 			}
 		}
 	}
 	
-	public function autoUpdateBranchE($ph){													//Now piggybacking on this function to handle in-processing call numbers if placeholder $ph so specifies
+	//This function checks in on items with a) no call number, or b) "in processing" as call number to update.
+	public function testBranchE($ph){	
+		$list=$this->Newbooks_model->loadBranchE();
+		var_dump($list);
+	}
+	
+	public function autoUpdateBranchE($ph){	
+		$statuteLimitations=$this->newbooksconfig->getStatute();			//Now piggybacking on this function to handle in-processing call numbers if placeholder $ph so specifies
 		if($ph=='processing'){
 			$list=$this->Newbooks_model->loadCallProc();
 		}
@@ -328,7 +351,7 @@ class Bookfeed extends CI_Controller {
 			$list=$this->Newbooks_model->loadBranchE();
 		}
 		foreach($list as $ocn){
-			$orderItemNums=$this->Newbooks_model->getOINfromOCN($ocn);
+			$orderItemNums=$this->Newbooks_model->getOINfromOCN($ocn,$statuteLimitations);		//Will return a match ONLY if item is marked received (otherwise no point looking for copy info) and ordered after cutoff date
 			foreach($orderItemNums as $orderItemNum=>$orderNum){
 				$resourceURLp2="/purchaseorders/".$orderNum."/items/".$orderItemNum;
 				$resourceURLp1="https://acq.sd00.worldcat.org";
@@ -370,6 +393,7 @@ class Bookfeed extends CI_Controller {
 				$msg=$this->Newbooks_model->deleteCopies($ocn);
 				$msg=$this->Newbooks_model->updateItem($orderItemNum,$ocnNew,$title,$matType,$person1,$isbn);
 				$this->autoLoadCopies($ocnNew);
+				echo "Loading ".$orderItemNum.": ".$title."<br/>";
 			}
 		}
 	}

@@ -1,4 +1,17 @@
 <?php
+
+/*
+
+MySQL relational model is as follows. Primary key designated with ^, foreign key designated with *, candidate key with &.
+order(orderNum^)
+item(orderItemNum^, orderNum*, orderStat, receiptStat, fund, receiptDate, orderDate, matType, title, person1, isbn, coverURL, ocn)
+copy(id^, callNum, ocn*, branch, location, dateAppear, barcode&) <- barcode is a weak candidate, it is unique but can change from time to time in WMS without this application getting the chance to update.
+//Many-to-many item_copy relationship is ambiguously modeled because the data ingested is similarly ambiguous on this connection
+(I can't confindently establish which copies for an OCN belong to which orderItem).
+See if this ambiguity causes issues. If so, try dropping id primary key, then make compound key orderItemNum/ocn to establish identifying relationship, or maybe a resolution table.
+Many indentifying relationships so asserted will not be accurate though....
+*/
+
 class Newbooks_model extends CI_Model{
 	public function __construct()
 	{
@@ -17,6 +30,8 @@ class Newbooks_model extends CI_Model{
 			$returnmsg="ok";
 		}
 		else{
+			/*Order number is the primary key (and only attribute) for table "order." Table partly functions as nonclustering index to table "item" without pointers, though order
+			could exist with no items. No need to update/overwrite tuple if orderNum already exists. Revisit code if orders are ever deleted from table "item." */
 			$returnmsg="full: ".$order;
 		}
 		return $returnmsg;
@@ -44,6 +59,8 @@ class Newbooks_model extends CI_Model{
 			$returnmsg="ok";
 		}
 		else{
+			/*updateItem currently used for update/replace of an item tuple. Could consolidate that into this function but I prefer to keep this function blocking updates as it's called
+			during mass load of items (overhead of updating tuples that haven't changed).*/
 			$returnmsg="full";
 		}
 		return $returnmsg;
@@ -75,7 +92,7 @@ class Newbooks_model extends CI_Model{
 		if($emptycheck==NULL){	//If this copy hasn't already been entered
 			$this->db->insert('copy',$newRow);
 		}
-		else{														//Found the old barcode. I'm using this like a copy-URI, but barcodes do sometimes change so a better solution might be worth pursuit.
+		else{													//Found the old barcode. I'm using this like a copy-URI, but barcodes do sometimes change so a better solution might be worth pursuit.
 			$this->db->set($oldRowReplacement);
 			$this->db->where('ocn',$ocn);
 			$this->db->where('barcode',$barcode);

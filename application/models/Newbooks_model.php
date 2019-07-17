@@ -5,7 +5,7 @@
 MySQL relational model is as follows. Primary key designated with ^, foreign key designated with *, candidate key with &.
 order(orderNum^)
 item(orderItemNum^, orderNum*, orderStat, receiptStat, fund, receiptDate, orderDate, matType, title, person1, isbn, coverURL, ocn)
-copy(id^, callNum, ocn*, branch, location, dateAppear, barcode&) <- barcode is a weak candidate, it is unique but can change from time to time in WMS without this application getting the chance to update.
+copy(id^, callNum, ocn*, branch, location, dateLoaded, barcode&) <- barcode is a weak candidate, it is unique but can change from time to time in WMS without this application getting the chance to update.
 //Many-to-many item_copy relationship is ambiguously modeled because the data ingested is similarly ambiguous on this connection
 (I can't confindently establish which copies for an OCN belong to which orderItem).
 See if this ambiguity causes issues. If so, try dropping id primary key, then make compound key orderItemNum/ocn to establish identifying relationship, or maybe a resolution table.
@@ -53,6 +53,9 @@ class Newbooks_model extends CI_Model{
 			$newRow['fund']=$fund;
 			$newRow['orderStat']=$orderStat;
 			$newRow['receiptStat']=$receiptStat;
+			if($receiptStat=='RECEIVED'){
+				$newRow['receiptDate']=date('Y-m-d');
+			}
 			$newRow['orderDate']=$orderDate;
 			$newRow['coverURL']="https://www.librarything.com/devkey/62679c796d05a02ce762ada59b4d826c/large/isbn/".$isbn;
 			$this->db->insert('item',$newRow);
@@ -85,8 +88,8 @@ class Newbooks_model extends CI_Model{
 			'callNum' => $callNum,
 			'barcode' => $barcode
 		);
-		$oldRowReplacement['dateAppear']=date('Y-m-d');
-		$newRow['dateAppear']=date('Y-m-d');
+		$oldRowReplacement['dateLoaded']=date('Y-m-d');
+		$newRow['dateLoaded']=date('Y-m-d');
 		$emptycheck=$this->db->get_where('copy',$oldRow);
 		$emptycheck=$emptycheck->row_array();
 		if($emptycheck==NULL){	//If this copy hasn't already been entered
@@ -272,7 +275,7 @@ class Newbooks_model extends CI_Model{
 					if($ageDeterminant=='order'){
 						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
 					}
-					else if($ageDeterminant=='receipt'&&strtotime($result2->dateAppear)>$dateInTime){
+					else if($ageDeterminant=='receipt'&&strtotime($result2->dateLoaded)>$dateInTime){
 						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
 					}
 				}

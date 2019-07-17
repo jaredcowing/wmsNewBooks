@@ -197,8 +197,8 @@ class Bookfeed extends CI_Controller {
 				$isbn=substr($isbn,0,strpos($isbn," ")-1);
 			}
 			if(property_exists($orderItem,"copyConfigs")){
-				if(count($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName)>0){
-					$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName;			//Revisit if issue arises with multi-copy orders
+				if(count($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)>0){
+					$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;			//Revisit if issue arises with multi-copy orders
 				}
 				else{
 					$fund="";
@@ -302,8 +302,8 @@ class Bookfeed extends CI_Controller {
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 			$dataP=json_decode($data);
 			if(property_exists($dataP,"copyConfigs")){
-				if(count($dataP->copyConfigs->copyConfig>0) && !empty($dataP->copyConfigs->copyConfig[0]->booking) && count($dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName)>0){
-					$fund=$dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountName;			//Revisit if issue arises with multi-copy orders
+				if(count($dataP->copyConfigs->copyConfig>0) && !empty($dataP->copyConfigs->copyConfig[0]->booking) && count($dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)>0){
+					$fund=$dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;			//Revisit if issue arises with multi-copy orders
 				}
 				else{
 					$fund="";

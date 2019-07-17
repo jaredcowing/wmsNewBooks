@@ -16,6 +16,7 @@ class Bookview extends CI_Controller {
 	{
 		$data['age']="";
 		$data['fund']="";
+		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 		$this->load->view('templates/header');
 		$this->load->view('templates/wumenu',$data);
 		$this->load->view('templates/footer');
@@ -26,6 +27,7 @@ class Bookview extends CI_Controller {
 		$facet=urldecode($facet);
 		$data['age']=$age;
 		$data['fund']=$facet;
+		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 		$this->load->view('templates/header');
 		$this->load->view('templates/wumenu',$data);
 		$this->load->view('templates/footer');
@@ -111,11 +113,6 @@ class Bookview extends CI_Controller {
 				$dateCutoff='ordered';
 			}
 			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
-			/*
-			if($fund=="Applied Computer Science"){										//Find a better way to handle changed fund names or multiple-fund queries. Using fund code might help with the former.
-				$list2=$this->Newbooks_model->loadList2("subject","Media Technology",$dateCutoff);
-				$list=array_merge($list,$list2);
-			}*/
 			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
 		}
 	}
@@ -141,15 +138,19 @@ class Bookview extends CI_Controller {
 			echo "<br />There's nothing new to show for this ".$type." & time. Try extending how far back to show new books from.<br /><br />";
 			$data['age']=$age;
 			$data['fund']=$facet;		//Consider renaming data sent to view since can now contain format
+			$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 			$this->load->view('templates/wumenu',$data);
 		}
 		else{
+			if($type=='subject'){
+				$subjDict=$this->newbooksconfig->getSubjectDict();
+			}
 			echo "<a href='https://jaredcowing.com/newBooks/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
 			if($dateCutoff!='ordered'){
 				if($facet=='All'){ echo "All newly bought books and videos from the last "; }
-				else if($type=='subject'){ echo "New ".$facet." books and videos bought from the last "; }
+				else if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos bought from the last "; }
 				else if($type=='format'){ echo "New ".$facet." bought from the last "; }
 				switch($age){
 					case '1M':
@@ -171,7 +172,7 @@ class Bookview extends CI_Controller {
 			}
 			else if($dateCutoff=='ordered'){
 				if($facet=='All'){ echo "All books and videos expected soon"; }
-				else if($type=='subject'){ echo "New ".$facet." books and videos expected soon"; }
+				else if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos expected soon"; }
 				else if($type=='format'){ echo "New ".$facet." expected soon"; }
 			}
 			echo ":</strong></div><br /><br /><br />";

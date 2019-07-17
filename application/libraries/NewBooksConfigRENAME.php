@@ -25,6 +25,36 @@ class NewBooksConfig {
 			return "2018-07-01";																			//Books ordered before this date won't continually be checked in on ("we give up, that book isn't ever coming" or "that record may be a data entry error")
 		}
 		
+		public function getSubjectDict(){						//Place your fund codes and fund names here
+			return array(
+				'ANIMB'=>'Animation',
+				'ANTHB'=>'Anthropology',
+				'METEB'=>'Applied Computer Science',
+				'ARCHB'=>'Architecture (Burbank)',
+				'ARCHSD'=>'Architecture (San Diego)',
+				'BUMAB'=>'Business Management/Marketing/Accounting',
+				'COMMB'=>'Communication',
+				'DESFB'=>'Design Foundation',
+				'FASHB'=>'Fashion Design',
+				'FILMB'=>'Filmmaking',
+				'FAAHB'=>'Fine Arts & Art History',
+				'GAMEB'=>'Game Art & Design',
+				'GRAPB'=>'Graphic Design',
+				'HISTB'=>'History',
+				'INDSB'=>'Interdisciplinary Studies',
+				'INTAB'=>'Interior Architecture',
+				'LITWB'=>'Literature & Writing',
+				'PHILB'=>'Philosophy',
+				'POLIB'=>'Political Science',
+				'POPUB'=>'Popular/Leisure (Burbank)',
+				'POPUSB'=>'Popular/Leisure (San Diego)',
+				'PSADB'=>'Public Safety Administration',
+				'PSYCB'=>'Psychology',
+				'SCMAB'=>'Science & Math',
+				'URBAB'=>'Urban Studies'
+			);
+		}
+		
 		public function getMonthPad(){
 			return 3;																						//If you will determine "availability date" of books by their order date, enter here the number of months it typically takes from order to shelf-ready. SET TO ZERO IF YOU WILL BE USING RECEIPT DATE INSTEAD. This helps the application to estimate an "arrival date" (ready date) from patron's perspective.
 		}

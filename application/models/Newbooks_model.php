@@ -10,10 +10,10 @@ class Newbooks_model extends CI_Model{
 		$newRow=array(
 			'orderNum' => $order
 		);
-		$emptycheck=$this->db->get_where('orders',$newRow);
+		$emptycheck=$this->db->get_where('order',$newRow);
 		$emptycheck=$emptycheck->row_array();
 		if($emptycheck==NULL){	//If this order hasn't already been entered
-			$this->db->insert('orders',$newRow);
+			$this->db->insert('order',$newRow);
 			$returnmsg="ok";
 		}
 		else{
@@ -26,7 +26,7 @@ class Newbooks_model extends CI_Model{
 		$newRow=array(
 			'orderItemNum' => $orderItemNum
 		);
-		$emptycheck=$this->db->get_where('items',$newRow);
+		$emptycheck=$this->db->get_where('item',$newRow);
 		$emptycheck=$emptycheck->row_array();
 		if($emptycheck==NULL){	//If this order item hasn't already been entered
 			$newRow['orderNum']=$orderNum;
@@ -40,7 +40,7 @@ class Newbooks_model extends CI_Model{
 			$newRow['receiptStat']=$receiptStat;
 			$newRow['orderDate']=$orderDate;
 			$newRow['coverURL']="https://www.librarything.com/devkey/62679c796d05a02ce762ada59b4d826c/large/isbn/".$isbn;
-			$this->db->insert('items',$newRow);
+			$this->db->insert('item',$newRow);
 			$returnmsg="ok";
 		}
 		else{
@@ -70,25 +70,25 @@ class Newbooks_model extends CI_Model{
 		);
 		$oldRowReplacement['dateAppear']=date('Y-m-d');
 		$newRow['dateAppear']=date('Y-m-d');
-		$emptycheck=$this->db->get_where('copies',$oldRow);
+		$emptycheck=$this->db->get_where('copy',$oldRow);
 		$emptycheck=$emptycheck->row_array();
 		if($emptycheck==NULL){	//If this copy hasn't already been entered
-			$this->db->insert('copies',$newRow);
+			$this->db->insert('copy',$newRow);
 		}
 		else{														//Found the old barcode. I'm using this like a copy-URI, but barcodes do sometimes change so a better solution might be worth pursuit.
 			$this->db->set($oldRowReplacement);
 			$this->db->where('ocn',$ocn);
 			$this->db->where('barcode',$barcode);
-			$this->db->update('copies');							//Re-work this for multiple copies
+			$this->db->update('copy');							//Re-work this for multiple copies
 		}
 	}
 	
 	public function deleteCopies($ocn){
-		$msg=$this->db->query("DELETE FROM copies WHERE ocn = '".$ocn."';");
+		$msg=$this->db->query("DELETE FROM copy WHERE ocn = '".$ocn."';");
 	}
 	
 	public function getOINfromOCN($ocn,$date){
-		$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
+		$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$orderItemNum=$result->orderItemNum;
@@ -100,10 +100,10 @@ class Newbooks_model extends CI_Model{
 	
 	public function loadList($fund){
 		if($fund=='all'){
-			$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED';");
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
 		}
 		else{
-			$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."';");
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."';");
 		}
 		$resultsList=array();
 		foreach($data->result() as $result){
@@ -116,7 +116,7 @@ class Newbooks_model extends CI_Model{
 			}
 			if($dupFlag==false){
 				$copiesList=array();
-				$data2=$this->db->get_where('copies',array('ocn' => $ocn));
+				$data2=$this->db->get_where('copy',array('ocn' => $ocn));
 				foreach($data2->result() as $result2){
 					if(strlen($result2->callNum)>0){
 						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
@@ -131,7 +131,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadExpecting($date){
-		$data=$this->db->query("SELECT * FROM items WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
+		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -144,7 +144,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadBranchE(){
-		$data=$this->db->query("SELECT * FROM copies WHERE (branch = '' OR callNum = '');");
+		$data=$this->db->query("SELECT * FROM copy WHERE (branch = '' OR callNum = '');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -162,7 +162,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadCallProc(){
-		$data=$this->db->query("SELECT * FROM copies WHERE (callNum = 'in processing' OR callNum = 'processing' OR callNum = 'in process');");
+		$data=$this->db->query("SELECT * FROM copy WHERE (callNum = 'in processing' OR callNum = 'processing' OR callNum = 'in process');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -184,10 +184,10 @@ class Newbooks_model extends CI_Model{
 			$statuteLimitations=$this->newbooksconfig->getStatute();
 			if($type=='subject'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."';");
+					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."';");
 				}
 				else{
-					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."';");
 				}
 			}
 			else if($type=='format'){
@@ -202,7 +202,7 @@ class Newbooks_model extends CI_Model{
 						$sqlstring="matType='BOOK'";
 				}
 				if($ageDeterminant=='order'){
-					$data=$this->db->query("SELECT * FROM items WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
+					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
 				}
 			}
 		}
@@ -210,18 +210,18 @@ class Newbooks_model extends CI_Model{
 			$dateInTime=strtotime($date);
 			if($type=='subject' && $ageDeterminant=='order'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
 				}
 				else{
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."';");
 				}
 			}
 			else if($type=='subject' && $ageDeterminant=='receipt'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
 				}
 				else{
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."';");
 				}
 			}
 			else if($type=='format'){
@@ -236,10 +236,10 @@ class Newbooks_model extends CI_Model{
 						$sqlstring="matType='BOOK'";
 				}
 				if($ageDeterminant=='order'){
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");");
 				}
 				else if($ageDeterminant=='receipt'){
-					$data=$this->db->query("SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.");");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.");");
 				}
 				//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");<br />".var_dump($data);
 			}
@@ -248,7 +248,7 @@ class Newbooks_model extends CI_Model{
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
 			$copiesList=array();
-			$data2=$this->db->get_where('copies',array('ocn' => $ocn));
+			$data2=$this->db->get_where('copy',array('ocn' => $ocn));
 			$copyIgnore=false;
 			foreach($data2->result() as $result2){
 				if($date!='ordered'&&strlen($result2->callNum)>0){
@@ -277,21 +277,21 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function receiveItem($orderItemNum,$orderStat,$fund){
-		$data=$this->db->query("UPDATE items SET receiptStat= 'RECEIVED' WHERE orderItemNum='".$orderItemNum."'");
+		$data=$this->db->query("UPDATE item SET receiptStat= 'RECEIVED' WHERE orderItemNum='".$orderItemNum."'");
 		$dateRN=date("Y:m:d");
 		if($fund!=""&&$orderStat!=""){
-			$data=$this->db->query("UPDATE items SET orderStat= '".$orderStat."', fund='".$fund."' WHERE orderItemNum='".$orderItemNum."'");
+			$data=$this->db->query("UPDATE item SET orderStat= '".$orderStat."', fund='".$fund."' WHERE orderItemNum='".$orderItemNum."'");
 		}
-		$data=$this->db->query("UPDATE items SET receiptDate= '".$dateRN."' WHERE orderItemNum='".$orderItemNum."'");
+		$data=$this->db->query("UPDATE item SET receiptDate= '".$dateRN."' WHERE orderItemNum='".$orderItemNum."'");
 		return $data;
 	}
 	
 	public function updateItem($orderItemNum,$ocnNew,$title,$matType,$person1,$isbn){
-		$data=$this->db->query("UPDATE items SET ocn='".$ocnNew."', title='".addslashes($title)."', matType='".$matType."', person1='".addslashes($person1)."', isbn='".addslashes($isbn)."' WHERE orderItemNum='".$orderItemNum."'");
+		$data=$this->db->query("UPDATE item SET ocn='".$ocnNew."', title='".addslashes($title)."', matType='".$matType."', person1='".addslashes($person1)."', isbn='".addslashes($isbn)."' WHERE orderItemNum='".$orderItemNum."'");
 		return $data;
 	}
 	
 	public function updateCancelled($orderItemNum){
-		$data=$this->db->query("UPDATE items SET orderStat='CANCELLED' WHERE orderItemNum='".$orderItemNum."'");
+		$data=$this->db->query("UPDATE item SET orderStat='CANCELLED' WHERE orderItemNum='".$orderItemNum."'");
 	}
 }

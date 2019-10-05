@@ -154,11 +154,10 @@ class Newbooks_model extends CI_Model{
 		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
-			$ocn=$result->ocn;
-			$orderNum=$result->orderNum;
 			$orderItemNum=$result->orderItemNum;
-			$resultsArr[$orderItemNum][0]=$orderNum;
-			$resultsArr[$orderItemNum][1]=$ocn;
+			$resultsArr[$orderItemNum][0]=$result->orderNum;
+			$resultsArr[$orderItemNum][1]=$result->ocn;
+			$resultsArr[$orderItemNum][2]=$result->title;
 		}
 		return $resultsArr;
 	}

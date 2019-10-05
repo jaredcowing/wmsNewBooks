@@ -13,6 +13,10 @@ class NewBooksConfig {
 			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent);
         }
 		
+		public function getBaseURL(){
+			return "https://jaredcowing.com/newBooks";														//The location of your install, without a slash at end.
+		}
+		
 		public function getBranches(){
 			$branchesArr=array(																				//List your library branches here. The holdings code is the array key,
 			"OMBL"=>"Burbank",																				//and the branch's name is the value. Remember to add a comma after

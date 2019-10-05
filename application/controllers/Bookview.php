@@ -62,40 +62,40 @@ class Bookview extends CI_Controller {
 				break;
 			case '6M':
 				if(strval(substr($date,5,6))>=(7+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-6-$monthPad);			//Changing to 9 so that there's some processing lead time; revert to 6 if using "data available" vs "date ordered"
+					$newMonth=strval(intval(substr($date,5,6))-6-$monthPad);
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+(6-$monthPad));			//See above note, but this number is inverted to going to previous year
+					$newMonth=strval(intval(substr($date,5,6))+(6-$monthPad));
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
 			case '3M':
 				if(strval(substr($date,5,6))>=(4+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-3-$monthPad);			//See above
+					$newMonth=strval(intval(substr($date,5,6))-3-$monthPad);
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+(9-$monthPad));			//See above
+					$newMonth=strval(intval(substr($date,5,6))+(9-$monthPad));
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
 			case '1M':
 				if(strval(substr($date,5,6))>=(2+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-(1+$monthPad));			//See above
+					$newMonth=strval(intval(substr($date,5,6))-(1+$monthPad));
 					if($newMonth<10){
 						$newMonth="0".$newMonth;
 					}
 					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
 				}
 				else{
-					$newMonth=strval(intval(substr($date,5,6))+(11-$monthPad));			//See above
+					$newMonth=strval(intval(substr($date,5,6))+(11-$monthPad));
 					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
 				}
 				break;
@@ -117,7 +117,7 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
-	public function branchTranslate($code){												//Extensible for other libraries, pulls from newbooksconfig file
+	public function branchTranslate($code){
 		$branchesArr=$this->newbooksconfig->getBranches();
 		foreach($branchesArr as $memCode=>$memBranch){
 			if($code==$memCode){
@@ -127,6 +127,7 @@ class Bookview extends CI_Controller {
 	}
 	
 	public function displayBookResults($type,$list,$facet,$dateCutoff,$age){
+		$baseURL=$this->newbooksconfig->getBaseURL();
 		$this->load->view('templates/header');
 		if($type=='format'){
 			$fundPad='SFORMAT_';
@@ -145,7 +146,7 @@ class Bookview extends CI_Controller {
 			if($type=='subject'){
 				$subjDict=$this->newbooksconfig->getSubjectDict();
 			}
-			echo "<a href='https://jaredcowing.com/newBooks/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
+			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
 			if($dateCutoff!='ordered'){
@@ -206,13 +207,13 @@ class Bookview extends CI_Controller {
 				echo "<a href='https://woodbury.on.worldcat.org/oclc/".$result[1]."' target='_blank'><div class='book'>";
 
 				if($result[4]=="BOOK"){
-					echo "<img class='format' src='https://jaredcowing.com/newBooks/images/book.png' alt='book format'></img>";
+					echo "<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";
 				}
 				else if($result[4]=="VIDEO_DVD"){
-					echo "<img class='format' src='https://jaredcowing.com/newBooks/images/dvd.png' alt='dvd format'></img>";
+					echo "<img class='format' src='".$baseURL."/images/dvd.png' alt='dvd format'></img>";
 				}
 				else if($result[4]=="VIDEO_BLURAY"){
-					echo "<img class='format' src='https://jaredcowing.com/newBooks/images/dvd.png' alt='bluray format'></img>";
+					echo "<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
 				}
 				if(substr($result[2],-5)!="isbn/"){
 					echo "<img class='cover' src='".$result[2]."'></img>";

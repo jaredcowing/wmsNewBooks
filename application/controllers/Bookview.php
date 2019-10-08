@@ -17,29 +17,44 @@ class Bookview extends CI_Controller {
 		$data['age']="";
 		$data['fund']="";
 		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
+		$data['size']='n';
 		$this->load->view('templates/header');
 		$this->load->view('templates/wumenu',$data);
 		$this->load->view('templates/footer');
 	}
 
-	public function repeat($age,$facet)
+	public function repeat($age,$facet,$size)
 	{
 		$facet=urldecode($facet);
 		$data['age']=$age;
 		$data['fund']=$facet;
 		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
-		$this->load->view('templates/header');
+		$data['size']=$size;
+		if($size!='m'){
+			$this->load->view('templates/header');
+		}
+		else{
+			$this->load->view('templates/headerM');
+		}
 		$this->load->view('templates/wumenu',$data);
 		$this->load->view('templates/footer');
 	}
 	
-	public function viewF($fund){
-		$fund=urldecode($fund);
-		$list=$this->Newbooks_model->loadList($fund);
-		$this->displayBookResults($list);
+	public function viewF($fund){				//If no size specified, default to normal
+		$this->viewFS($fund,"n");
 	}
 	
-	public function viewFA($fund,$age){	//Fund variable may now also contain format, might re-name this
+	public function viewFS($fund,$size){
+		$fund=urldecode($fund);
+		$list=$this->Newbooks_model->loadList($fund);
+		$this->displayBookResults(array_push($list,$size));
+	}
+	
+	public function viewFA($fund,$age){			//If no size specified, default to normal
+		$this->viewFAS($fund,$age,'n');
+	}
+	
+	public function viewFAS($fund,$age,$size){	//Fund variable may now also contain format, might re-name this
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
 			$fund=substr($fund,0,$whereisit)."&".substr($fund,$whereisit+6);
@@ -113,7 +128,7 @@ class Bookview extends CI_Controller {
 				$dateCutoff='ordered';
 			}
 			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
-			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
+			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
 		}
 	}
 	
@@ -126,9 +141,14 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
-	public function displayBookResults($type,$list,$facet,$dateCutoff,$age){
+	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size){
 		$baseURL=$this->newbooksconfig->getBaseURL();
-		$this->load->view('templates/header');
+		if($size!='m'){
+			$this->load->view('templates/header');
+		}
+		else{
+			$this->load->view('templates/headerM');
+		}
 		if($type=='format'){
 			$fundPad='SFORMAT_';
 		}
@@ -140,13 +160,14 @@ class Bookview extends CI_Controller {
 			$data['age']=$age;
 			$data['fund']=$facet;		//Consider renaming data sent to view since can now contain format
 			$data['subjDict']=$this->newbooksconfig->getSubjectDict();
+			$data['size']=$size;
 			$this->load->view('templates/wumenu',$data);
 		}
 		else{
 			if($type=='subject'){
 				$subjDict=$this->newbooksconfig->getSubjectDict();
 			}
-			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
+			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
 			if($dateCutoff!='ordered'){
@@ -216,7 +237,10 @@ class Bookview extends CI_Controller {
 					echo "<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
 				}
 				if(substr($result[2],-5)!="isbn/"){
-					echo "<img class='cover' src='".$result[2]."'></img>";
+					//echo "<img class='cover' src='".$result[2]."'></img>";
+					if($result[5]!=0){
+						echo "<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+					}
 				}
 				echo "<div class='title'>".$result[0]."</div><br /><div class='details'>";
 				foreach($result[3] as $copy){

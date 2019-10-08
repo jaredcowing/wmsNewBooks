@@ -143,7 +143,7 @@ class Newbooks_model extends CI_Model{
 					}
 				}
 				if(sizeOf($copiesList>0)){
-					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
 				}
 			}
 		}
@@ -286,10 +286,10 @@ class Newbooks_model extends CI_Model{
 				}
 			}
 			if(sizeOf($copiesList)>0){
-				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
 			}
 			else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
-				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType));
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
 			}
 		}
 		return $resultsList;

@@ -37,7 +37,7 @@ class Newbooks_model extends CI_Model{
 		return $returnmsg;
 	}
 	
-	public function saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate){
+	public function saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL){
 		$newRow=array(
 			'orderItemNum' => $orderItemNum
 		);
@@ -57,7 +57,7 @@ class Newbooks_model extends CI_Model{
 				$newRow['receiptDate']=date('Y-m-d');
 			}
 			$newRow['orderDate']=$orderDate;
-			$newRow['coverURL']="https://www.librarything.com/devkey/62679c796d05a02ce762ada59b4d826c/large/isbn/".$isbn;
+			$newRow['coverURL']=$coverURL;
 			$this->db->insert('item',$newRow);
 			$returnmsg="ok";
 		}
@@ -116,6 +116,17 @@ class Newbooks_model extends CI_Model{
 			$resultsArr[$orderItemNum]=$orderNum;
 		}
 		return $resultsArr;
+	}
+	
+	public function loadISBNs(){
+		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL!='' LIMIT 15");
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$isbn=$result->isbn;
+			$resultsList[$orderItemNum]=$isbn;
+		}
+		return $resultsList;
 	}
 	
 	public function loadList($fund){
@@ -302,6 +313,13 @@ class Newbooks_model extends CI_Model{
 			$data=$this->db->query("UPDATE item SET orderStat= '".$orderStat."', fund='".$fund."' WHERE orderItemNum='".$orderItemNum."'");
 		}
 		$data=$this->db->query("UPDATE item SET receiptDate= '".$dateRN."' WHERE orderItemNum='".$orderItemNum."'");
+		return $data;
+	}
+	
+	public function updateCoverURLs($coverArray){
+		foreach($coverArray as $orderItemNum=>$coverURL){
+			$data=$this->db->query("UPDATE item SET coverURL='".$coverURL."' WHERE orderItemNum='".$orderItemNum."'");
+		}
 		return $data;
 	}
 	

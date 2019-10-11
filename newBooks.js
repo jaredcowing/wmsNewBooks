@@ -15,6 +15,7 @@ $(document).ready(function(){
 	});
 	$('.bookMask').hide();
 	}
+	$('#loadingCover').remove();
 	
 	$('body').on('keypress click','#newBooksGo',function(e){				//Just in case fund code has URL characters
 		if(e.which === 13 || e.type === 'click'){

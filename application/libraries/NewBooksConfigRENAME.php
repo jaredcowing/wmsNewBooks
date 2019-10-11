@@ -6,11 +6,12 @@ class NewBooksConfig {
         public function getKeys()
         {
 			$secretKey="";															//Place your OCLC shared secret key here
-			$wsKey="";		//Place your OCLC WSkey here
+			$wsKey="";											//Place your OCLC WSkey here
 			$principalID="";
 			$principalIDNS="";
 			$userAgent="";										//Place your user agent here
-			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent);
+			$googleBooksKey="";									//Optional, leave blank if you don't have or intend to use this
+			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent,$googleBooksKey);
         }
 		
 		public function getBaseURL(){

@@ -132,6 +132,10 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
+	public function viewFAT($fund,$age){			//For testing
+		$this->viewFAS($fund,$age,'t');
+	}
+	
 	public function branchTranslate($code){
 		$branchesArr=$this->newbooksconfig->getBranches();
 		foreach($branchesArr as $memCode=>$memBranch){
@@ -149,6 +153,7 @@ class Bookview extends CI_Controller {
 		else{
 			$this->load->view('templates/headerM');
 		}
+		echo "<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='/newBooks/images/spinning-wheel.gif'></img></div>";		//Using inline style to ensure it's applied early in the load process
 		if($type=='format'){
 			$fundPad='SFORMAT_';
 		}
@@ -200,6 +205,7 @@ class Bookview extends CI_Controller {
 			echo ":</strong></div><br /><br /><br />";
 		}
 		$ocns=array();
+		$echoString="";
 		foreach($list as $result){
 			$dupFlag=false;
 			$start=0;
@@ -225,31 +231,89 @@ class Bookview extends CI_Controller {
 			}
 			if($dupFlag==false){
 				array_push($ocns,$result[1]);
-				echo "<a href='https://woodbury.on.worldcat.org/oclc/".$result[1]."' target='_blank'><div class='book'>";
+				$echoString.="<a href='https://woodbury.on.worldcat.org/oclc/".$result[1]."' target='_blank'><div class='book'>";
 
 				if($result[4]=="BOOK"){
-					echo "<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";
+					$echoString.="<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";
 				}
 				else if($result[4]=="VIDEO_DVD"){
-					echo "<img class='format' src='".$baseURL."/images/dvd.png' alt='dvd format'></img>";
+					$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='dvd format'></img>";
 				}
 				else if($result[4]=="VIDEO_BLURAY"){
-					echo "<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
+					$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
 				}
 				if(substr($result[2],-5)!="isbn/"){
-					//echo "<img class='cover' src='".$result[2]."'></img>";
+					//$echoString.="<img class='cover' src='".$result[2]."'></img>";
 					if($result[5]!=0){
-						echo "<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+						if($size!='t'){
+							if($result[2]!=""){
+								$echoString.="<img class='cover' src='".$result[2]."' alt='".$result[0]." cover image'></img>";
+							}
+							else{
+								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+							}
+						}
+						else{															//Use this space for testing new image loading sources, accessed through viewFAT method
+							$coverURL=$this->googleTransmit($result[5]);
+							if($coverURL!="{}"){										//If Google returned an image
+								$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
+							}
+							else{
+								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+							}
+						}
 					}
 				}
-				echo "<div class='title'>".$result[0]."</div><br /><div class='details'>";
+				$echoString.="<div class='title'>".$result[0]."</div><br /><div class='details'>";
 				foreach($result[3] as $copy){
 					$branch=$this->branchTranslate($copy[0]);
-					echo "<div class='bloc'><div class='branch'>".$branch."</div><div class='location'>".$copy[1]."</div></div><div class='callNum'>".$copy[2]."</div>";
+					$echoString.="<div class='bloc'><div class='branch'>".$branch."</div><div class='location'>".$copy[1]."</div></div><div class='callNum'>".$copy[2]."</div>";
 				}
-				echo "</div></div></a>";
+				$echoString.="</div></div></a>";
 			}
-		}	
+		}
+		echo $echoString;		
 		$this->load->view('templates/footer');
+	}
+	
+	public function googleTransmit($isbn){											//Conducts all exchanges with Google Books API
+		$keysArr=$this->newbooksconfig->getKeys();
+		if($keysArr[5])!=""{
+			$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
+			$resourceURLp1="https://www.googleapis.com";
+			$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
+			$ua=$keysArr[4];
+			$curl=curl_init($resourceURLp1.$resourceURLp2);
+			curl_setopt($curl,CURLOPT_POST,false);
+			curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+			curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
+			curl_setopt($curl,CURLOPT_USERAGENT,$ua);
+				//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
+				//$log='templog.txt';
+				//$filehandle=fopen($log,'a');
+				//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
+			$resp=curl_exec($curl);
+				//$resperror=curl_error($curl);
+			if (curl_errno($curl)) {
+				print_r("Error: ".curl_error($curl).curl_errno($curl)); 
+				print_r("\r\nResponse: ");
+				return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
+			}
+			else {
+				$respJSON=json_decode($resp);
+				if(property_exists($respJSON,'items')==TRUE){
+					$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
+				}
+				else{
+					$coverURL="";
+				}
+				return $coverURL;
+			}
+			curl_close($curl);
+		}
+		else{
+			return "";
+		}
 	}
 }

@@ -166,7 +166,8 @@ class Bookfeed extends CI_Controller {
 			else{
 				$orderDate="";
 			}
-			$msg=$this->Newbooks_model->saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate);
+			$coverURL=$this->googleTransmit($isbn);
+			$msg=$this->Newbooks_model->saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL);
 			if($msg=='ok'){
 				array_push($newAdds,$title);
 				echo "<br />".$title;
@@ -354,6 +355,29 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
+	public function refreshCoverURL($pw){
+		if($pw=='LearningDoingSucceeding1884'){
+			$isbnArray=$this->Newbooks_model->loadISBNs();
+			$coverURLarray=array();
+			$counter=0;
+			foreach($isbnArray as $orderItemNum=>$isbn){
+				echo strval($counter)." of ".sizeof($isbnArray).":<br />";
+				echo "ISBN=".$isbn;
+				$coverURL=$this->googleTransmit($isbn);
+				echo "<br />Func return: ".$coverURL."<br />";
+				$coverURLarray[$orderItemNum]=$coverURL;
+				$counter++;
+			}
+			//echo(var_dump($isbnArray));
+			echo(var_dump($coverURLarray));
+		}
+		else{
+			echo "Access denied.";
+		}
+		$msg=$this->Newbooks_model->updateCoverURLs($coverURLarray);
+		echo $msg;
+	}
+	
 	public function oclcTransmit($resourceURLp1,$resourceURLp2){					//Conducts all exchanges with API
 		$resourceURL=$resourceURLp1.$resourceURLp2;
 		$keysArr=$this->newbooksconfig->getKeys();
@@ -400,7 +424,7 @@ class Bookfeed extends CI_Controller {
 		$ua=$keysArr[4];
 		$curl=curl_init($resourceURL);
 		curl_setopt($curl,CURLOPT_POST,false);
-		curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl,CURLOPT_RETURNTRANSFER,false);
 		curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
 		curl_setopt($curl,CURLOPT_USERAGENT,$ua);
 			//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
@@ -419,6 +443,50 @@ class Bookfeed extends CI_Controller {
 		}
 		curl_close($curl);
 	}
+	
+	public function googleTransmit($isbn){											//Conducts all exchanges with Google Books API
+		$keysArr=$this->newbooksconfig->getKeys();
+		if($keysArr[5])!=""{
+			$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
+			$resourceURLp1="https://www.googleapis.com";
+			$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
+			$ua=$keysArr[4];
+			$curl=curl_init($resourceURLp1.$resourceURLp2);
+			curl_setopt($curl,CURLOPT_POST,false);
+			curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+			curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
+			curl_setopt($curl,CURLOPT_USERAGENT,$ua);
+				//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
+				//$log='templog.txt';
+				//$filehandle=fopen($log,'a');
+				//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
+			$resp=curl_exec($curl);
+				//$resperror=curl_error($curl);
+			if (curl_errno($curl)) {
+				print_r("Error: ".curl_error($curl).curl_errno($curl)); 
+				print_r("\r\nResponse: ");
+				return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
+			}
+			else {
+				$respJSON=json_decode($resp);
+				echo "RESPONSE: ".$resp;
+				if(property_exists($respJSON,'items')==TRUE){
+					$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
+				}
+				else{
+					$coverURL="";
+				}
+				return $coverURL;
+			}
+			curl_close($curl);
+		}
+		else{
+			return "";
+		}
+	}
+	
+	
 	//If random string generator fails, this function taken from Karen Coombs OCLC authentication library
 	/*function makeRandomString($bits = 256) {
 		$bytes = ceil($bits / 8);

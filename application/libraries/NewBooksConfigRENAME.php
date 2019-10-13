@@ -5,13 +5,18 @@ class NewBooksConfig {
 
         public function getKeys()
         {
-			$secretKey="";															//Place your OCLC shared secret key here
-			$wsKey="";		//Place your OCLC WSkey here
+			$secretKey="";										//Place your OCLC shared secret key here
+			$wsKey="";											//Place your OCLC WSkey here
 			$principalID="";
 			$principalIDNS="";
 			$userAgent="";										//Place your user agent here
-			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent);
+			$googleBooksKey=""									//Optional, leave blank if not using Google Books covers
+			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent,$googleBooksKey);
         }
+		
+		public function getBaseURL(){
+			return "https://yoursite.com/newBooks";				//Location of your install												//The location of your install, without a slash at end.
+		}
 		
 		public function getBranches(){
 			$branchesArr=array(																				//List your library branches here. The holdings code is the array key,

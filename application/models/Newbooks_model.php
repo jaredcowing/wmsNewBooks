@@ -37,7 +37,7 @@ class Newbooks_model extends CI_Model{
 		return $returnmsg;
 	}
 	
-	public function saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate){
+	public function saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL){
 		$newRow=array(
 			'orderItemNum' => $orderItemNum
 		);
@@ -57,7 +57,7 @@ class Newbooks_model extends CI_Model{
 				$newRow['receiptDate']=date('Y-m-d');
 			}
 			$newRow['orderDate']=$orderDate;
-			$newRow['coverURL']="https://www.librarything.com/devkey/62679c796d05a02ce762ada59b4d826c/large/isbn/".$isbn;
+			$newRow['coverURL']=$coverURL;
 			$this->db->insert('item',$newRow);
 			$returnmsg="ok";
 		}
@@ -107,6 +107,10 @@ class Newbooks_model extends CI_Model{
 		$msg=$this->db->query("DELETE FROM copy WHERE ocn = '".$ocn."';");
 	}
 	
+	public function deleteItem($orderItemNum){
+		$msg=$this->db->query("DELETE FROM item WHERE orderItemNum = '".$orderItemNum."';");
+	}
+	
 	public function getOINfromOCN($ocn,$date){
 		$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
 		$resultsArr=array();
@@ -116,6 +120,28 @@ class Newbooks_model extends CI_Model{
 			$resultsArr[$orderItemNum]=$orderNum;
 		}
 		return $resultsArr;
+	}
+	
+	public function loadISBNs(){
+		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE orderItemNum<'2018-181-7' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 115");		//This logic is custom to my installation for special cleanup
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$isbn=$result->isbn;
+			$resultsList[$orderItemNum]=$isbn;
+		}
+		return $resultsList;
+	}
+	
+	public function loadOINs(){
+		$data=$this->db->query("SELECT orderItemNum, orderNum FROM item WHERE coverURL NOT LIKE '%google%' AND isbn NOT LIKE '%978%' ORDER BY orderItemNum DESC LIMIT 500");		//This logic is custom to my installation for special cleanup
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$orderNum=$result->orderNum;
+			$resultsList[$orderItemNum]=$orderNum;
+		}
+		return $resultsList;
 	}
 	
 	public function loadList($fund){
@@ -143,7 +169,7 @@ class Newbooks_model extends CI_Model{
 					}
 				}
 				if(sizeOf($copiesList>0)){
-					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
 				}
 			}
 		}
@@ -154,11 +180,10 @@ class Newbooks_model extends CI_Model{
 		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
 		$resultsArr=array();
 		foreach($data->result() as $result){
-			$ocn=$result->ocn;
-			$orderNum=$result->orderNum;
 			$orderItemNum=$result->orderItemNum;
-			$resultsArr[$orderItemNum][0]=$orderNum;
-			$resultsArr[$orderItemNum][1]=$ocn;
+			$resultsArr[$orderItemNum][0]=$result->orderNum;
+			$resultsArr[$orderItemNum][1]=$result->ocn;
+			$resultsArr[$orderItemNum][2]=$result->title;
 		}
 		return $resultsArr;
 	}
@@ -287,10 +312,10 @@ class Newbooks_model extends CI_Model{
 				}
 			}
 			if(sizeOf($copiesList)>0){
-				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType));			//Will the uneven dimensions cause problem?
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
 			}
 			else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
-				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType));
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
 			}
 		}
 		return $resultsList;
@@ -303,6 +328,20 @@ class Newbooks_model extends CI_Model{
 			$data=$this->db->query("UPDATE item SET orderStat= '".$orderStat."', fund='".$fund."' WHERE orderItemNum='".$orderItemNum."'");
 		}
 		$data=$this->db->query("UPDATE item SET receiptDate= '".$dateRN."' WHERE orderItemNum='".$orderItemNum."'");
+		return $data;
+	}
+	
+	public function updateCoverURLs($coverArray){
+		foreach($coverArray as $orderItemNum=>$coverURL){
+			$data=$this->db->query("UPDATE item SET coverURL='".$coverURL."' WHERE orderItemNum='".$orderItemNum."'");
+		}
+		return $data;
+	}
+	
+	public function updateISBNs($isbnArray){
+		foreach($isbnArray as $orderItemNum=>$isbn){
+			$data=$this->db->query("UPDATE item SET isbn='".$isbn."' WHERE orderItemNum='".$orderItemNum."'");
+		}
 		return $data;
 	}
 	

@@ -10,15 +10,19 @@ $(document).ready(function(){
 			$(this).css({'width':'200px','height':'auto','max-height':'250px'});
 		}
 		else{
+			$(this).remove();
 		}
 	});
 	$('.bookMask').hide();
 	}
+	$('#loadingCover').remove();
 	
-	$('body').on('keypress click','#newBooksGo',function(e){				//It might be better to switch the whole application over to fund codes to avoid these raw string URL problems
+	$('body').on('keypress click','#newBooksGo',function(e){				//Just in case fund code has URL characters
 		if(e.which === 13 || e.type === 'click'){
 			var fund=$('#subjectChooser').val();
 			var age=$('#dateChooser').val();
+			$('#newBooksGo img').attr('src','https://jaredcowing.com/newBooks/images/spinning-wheel.gif');
+			$('#newBooksGo img').css('padding-top','15px');
 		}
 		while(fund.indexOf('&')!=-1){
 			var whereisit=fund.indexOf('&');
@@ -31,6 +35,25 @@ $(document).ready(function(){
 		var urlpass=encodeURI(fund+"/"+age);
 		window.location.href="https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/"+urlpass;
 		//alert(urlpass);
+	});
+	
+	$('body').on('keypress click','#newBooksGoM',function(e){				//Just in case fund code has URL characters
+		if(e.which === 13 || e.type === 'click'){
+			var fund=$('#subjectChooser').val();
+			var age=$('#dateChooser').val();
+			$('#newBooksGo img').attr('src','https://jaredcowing.com/newBooks/images/spinning-wheel.gif');
+			$('#newBooksGo img').css('padding-top','15px');
+		}
+		while(fund.indexOf('&')!=-1){
+			var whereisit=fund.indexOf('&');
+			fund=fund.substr(0,whereisit)+"^^"+fund.substr(whereisit+1);
+		}
+		while(fund.indexOf('/')!=-1){
+			var whereisit=fund.indexOf('/');
+			fund=fund.substr(0,whereisit)+"~~"+fund.substr(whereisit+1);
+		}
+		var urlpass=encodeURI(fund+"/"+age);
+		window.location.href="https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/"+urlpass+"/m";
 	});
 	
 	$('body').on('mouseenter','.coverUnfaded',function(){

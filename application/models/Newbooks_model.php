@@ -123,7 +123,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadISBNs(){
-		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE orderItemNum<'2018-181-7' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 115");		//This logic is custom to my installation for special cleanup
+		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL !='' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 100");		//This logic is custom to my installation for special cleanup
 		$resultsList=array();
 		foreach($data->result() as $result){
 			$orderItemNum=$result->orderItemNum;

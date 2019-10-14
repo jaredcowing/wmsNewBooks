@@ -50,11 +50,11 @@ class Bookview extends CI_Controller {
 		$this->displayBookResults(array_push($list,$size));
 	}
 	
-	public function viewFA($fund,$age){			//If no size specified, default to normal
+	public function viewFA($fund,$age){			//Fund, Age; If no size specified, default to normal
 		$this->viewFAS($fund,$age,'n');
 	}
 	
-	public function viewFAS($fund,$age,$size){	//Fund variable may now also contain format, might re-name this
+	public function viewFAS($fund,$age,$size){	//Fund, Age, Size; Fund variable may now also contain format, might re-name this
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
 			$fund=substr($fund,0,$whereisit)."&".substr($fund,$whereisit+6);
@@ -132,7 +132,7 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
-	public function viewFAT($fund,$age){			//For testing
+	public function viewFAT($fund,$age){			//Fund, Age, Testmode
 		$this->viewFAS($fund,$age,'t');
 	}
 	

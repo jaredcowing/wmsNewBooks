@@ -533,6 +533,10 @@ class Bookfeed extends CI_Controller {
 			else{
 				$coverURL="";
 			}
+			else if($respJSON=='{}'){
+				$coverURL="";
+			}
+			else{$coverURL="APIERROR";}
 			return $coverURL;
 		}
 		curl_close($curl);

@@ -3,6 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class NewBooksConfig {
         public function getKeys()
         {
+<<<<<<< HEAD
 			$secretKey="";				//Place your OCLC shared secret key here
 			$wsKey="";					//Place your OCLC WSkey here
 			$principalID="";
@@ -15,6 +16,19 @@ class NewBooksConfig {
 		
 		public function getBaseURL(){
 			return "https://yoursite.com/newBooks";	//The location of your install, without a slash at end.
+=======
+			$secretKey="";										//Place your OCLC shared secret key here
+			$wsKey="";											//Place your OCLC WSkey here
+			$principalID="";
+			$principalIDNS="";
+			$userAgent="";										//Place your user agent here
+			$googleBooksKey=""									//Optional, leave blank if not using Google Books covers
+			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent,$googleBooksKey);
+        }
+		
+		public function getBaseURL(){
+			return "https://yoursite.com/newBooks";				//Location of your install												//The location of your install, without a slash at end.
+>>>>>>> 8983e4e67418985b9bd11b45a2ea16cd2b723808
 		}
 		
 		public function getBranches(){

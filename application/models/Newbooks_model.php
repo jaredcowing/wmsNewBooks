@@ -107,6 +107,10 @@ class Newbooks_model extends CI_Model{
 		$msg=$this->db->query("DELETE FROM copy WHERE ocn = '".$ocn."';");
 	}
 	
+	public function deleteItem($orderItemNum){
+		$msg=$this->db->query("DELETE FROM item WHERE orderItemNum = '".$orderItemNum."';");
+	}
+	
 	public function getOINfromOCN($ocn,$date){
 		$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
 		$resultsArr=array();
@@ -119,12 +123,23 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function loadISBNs(){
-		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL!='' LIMIT 15");
+		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL !='' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 100");		//This logic is custom to my installation for special cleanup
 		$resultsList=array();
 		foreach($data->result() as $result){
 			$orderItemNum=$result->orderItemNum;
 			$isbn=$result->isbn;
 			$resultsList[$orderItemNum]=$isbn;
+		}
+		return $resultsList;
+	}
+	
+	public function loadOINs(){
+		$data=$this->db->query("SELECT orderItemNum, orderNum FROM item WHERE coverURL NOT LIKE '%google%' AND isbn NOT LIKE '%978%' ORDER BY orderItemNum DESC LIMIT 500");		//This logic is custom to my installation for special cleanup
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$orderNum=$result->orderNum;
+			$resultsList[$orderItemNum]=$orderNum;
 		}
 		return $resultsList;
 	}
@@ -169,6 +184,21 @@ class Newbooks_model extends CI_Model{
 			$resultsArr[$orderItemNum][0]=$result->orderNum;
 			$resultsArr[$orderItemNum][1]=$result->ocn;
 			$resultsArr[$orderItemNum][2]=$result->title;
+		}
+		return $resultsArr;
+	}
+	
+	public function loadExpecting2($date){
+		$data2=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
+		$resultsArr=array();
+		foreach($data2->result() as $result){
+			$data3=$this->db->query("SELECT * FROM copy WHERE ocn='".$result->ocn."';");
+			if(count($data3->result())==0){
+				$orderItemNum=$result->orderItemNum;
+				$resultsArr[$orderItemNum][0]=$result->orderNum;
+				$resultsArr[$orderItemNum][1]=$result->ocn;
+				$resultsArr[$orderItemNum][2]=$result->title;
+			}
 		}
 		return $resultsArr;
 	}
@@ -319,6 +349,13 @@ class Newbooks_model extends CI_Model{
 	public function updateCoverURLs($coverArray){
 		foreach($coverArray as $orderItemNum=>$coverURL){
 			$data=$this->db->query("UPDATE item SET coverURL='".$coverURL."' WHERE orderItemNum='".$orderItemNum."'");
+		}
+		return $data;
+	}
+	
+	public function updateISBNs($isbnArray){
+		foreach($isbnArray as $orderItemNum=>$isbn){
+			$data=$this->db->query("UPDATE item SET isbn='".$isbn."' WHERE orderItemNum='".$orderItemNum."'");
 		}
 		return $data;
 	}

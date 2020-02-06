@@ -146,6 +146,7 @@ class Bookview extends CI_Controller {
 	}
 	
 	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size){
+		$keysArr=$this->newbooksconfig->getKeys();
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		if($size!='m'){
 			$this->load->view('templates/header');
@@ -249,6 +250,9 @@ class Bookview extends CI_Controller {
 							if($result[2]!=""){
 								$echoString.="<img class='cover' src='".$result[2]."' alt='".$result[0]." cover image'></img>";
 							}
+							else if($result[4]=='VIDEO_DVD'||$result[4]=='VIDEO_BLURAY'){
+								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
+							}
 							else{
 								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
 							}
@@ -259,7 +263,8 @@ class Bookview extends CI_Controller {
 								$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
 							}
 							else{
-								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+								//$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
+								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
 							}
 						}
 					}
@@ -278,42 +283,37 @@ class Bookview extends CI_Controller {
 	
 	public function googleTransmit($isbn){											//Conducts all exchanges with Google Books API
 		$keysArr=$this->newbooksconfig->getKeys();
-		if($keysArr[5])!=""{
-			$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
-			$resourceURLp1="https://www.googleapis.com";
-			$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
-			$ua=$keysArr[4];
-			$curl=curl_init($resourceURLp1.$resourceURLp2);
-			curl_setopt($curl,CURLOPT_POST,false);
-			curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
-			curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
-			curl_setopt($curl,CURLOPT_USERAGENT,$ua);
-				//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
-				//$log='templog.txt';
-				//$filehandle=fopen($log,'a');
-				//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
-			$resp=curl_exec($curl);
-				//$resperror=curl_error($curl);
-			if (curl_errno($curl)) {
-				print_r("Error: ".curl_error($curl).curl_errno($curl)); 
-				print_r("\r\nResponse: ");
-				return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
-			}
-			else {
-				$respJSON=json_decode($resp);
-				if(property_exists($respJSON,'items')==TRUE){
-					$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
-				}
-				else{
-					$coverURL="";
-				}
-				return $coverURL;
-			}
-			curl_close($curl);
+		$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
+		$resourceURLp1="https://www.googleapis.com";
+		$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
+		$ua=$keysArr[4];
+		$curl=curl_init($resourceURLp1.$resourceURLp2);
+		curl_setopt($curl,CURLOPT_POST,false);
+		curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+		curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
+		curl_setopt($curl,CURLOPT_USERAGENT,$ua);
+			//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
+			//$log='templog.txt';
+			//$filehandle=fopen($log,'a');
+			//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
+		$resp=curl_exec($curl);
+			//$resperror=curl_error($curl);
+		if (curl_errno($curl)) {
+			print_r("Error: ".curl_error($curl).curl_errno($curl)); 
+			print_r("\r\nResponse: ");
+			return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
 		}
-		else{
-			return "";
+		else {
+			$respJSON=json_decode($resp);
+			if(property_exists($respJSON,'items')==TRUE){
+				$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
+			}
+			else{
+				$coverURL="";
+			}
+			return $coverURL;
 		}
+		curl_close($curl);
 	}
 }

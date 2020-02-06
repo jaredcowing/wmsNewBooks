@@ -1,3 +1,4 @@
+<script type='text/javascript' src='https://jaredcowing.com/newBooks/newBooks.js'></script>
 Show me print (physical) items the library has bought that are:
 <br />
 <select id='subjectChooser'>

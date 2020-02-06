@@ -114,7 +114,7 @@ class Bookfeed extends CI_Controller {
 			else{
 				$ocn="";
 			}
-			$ISBNcount=count($orderItem->resource->worldcatResource->isbn);
+			$ISBNcount=sizeof($orderItem->resource->worldcatResource->isbn);
 			if($ISBNcount>0){												//Seek 13-digit if one exists, otherwise use 10 (Does LibraryThing have a preferred ISBN format?)
 				$ISBN13Flag=false;
 				for($c=0;$c<$ISBNcount;$c++){
@@ -235,10 +235,15 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
-	public function autoUpdateReceived($ph){
+	public function autoUpdateReceived($ph){								//If there are items marked received with no copy attached (rare), enter parameter 'awaitingcopy'
 		$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
-		$list=$this->Newbooks_model->loadExpecting($statuteLimitations);
-		foreach($list as $orderItemNum=>$item){
+		if($ph=='awaitingcopy'){
+			$list=$this->Newbooks_model->loadExpecting2($statuteLimitations);
+		}
+		else{
+			$list=$this->Newbooks_model->loadExpecting($statuteLimitations);
+		}
+		foreach($list as $orderItemNum=>$item){								//Will not account for changed OCN, but autoUpdateBranchE will so will catch such cases when item reaches that error stage
 			$resourceURLp2="/purchaseorders/".$item[0]."/items/".$orderItemNum;
 			$resourceURLp1="https://acq.sd00.worldcat.org";
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
@@ -323,7 +328,7 @@ class Bookfeed extends CI_Controller {
 				else{
 					$person1="";
 				}
-				$ISBNcount=count($dataP->resource->worldcatResource->isbn);
+				$ISBNcount=sizeof($dataP->resource->worldcatResource->isbn);
 				if($ISBNcount>0){												//Seek 13-digit if one exists, otherwise use 10 (Does LibraryThing have a preferred ISBN format?)
 					$ISBN13Flag=false;
 					for($c=0;$c<$ISBNcount;$c++){
@@ -355,7 +360,7 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
-	public function refreshCoverURL($pw){
+	public function refreshCoverURL($pw){										//Use carefully, this is for database maintenance if you think coverURLs need a refresh
 		if($pw=='LearningDoingSucceeding1884'){
 			$isbnArray=$this->Newbooks_model->loadISBNs();
 			$coverURLarray=array();
@@ -376,6 +381,56 @@ class Bookfeed extends CI_Controller {
 		}
 		$msg=$this->Newbooks_model->updateCoverURLs($coverURLarray);
 		echo $msg;
+	}
+	
+	public function refreshISBNs($pw){											//Use carefully, this is for database maintenance if you think ISBNs need a refresh
+		if($pw=='LearningDoingSucceeding1884'){
+			//$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
+			$list=$this->Newbooks_model->loadOINs();
+			echo(var_dump($list));
+			$isbnArray=array();
+			$counter=1;
+			foreach($list as $orderItemNum=>$orderNum){
+				$resourceURLp2="/purchaseorders/".$orderNum."/items/".$orderItemNum;
+				$resourceURLp1="https://acq.sd00.worldcat.org";
+				$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
+				//echo("<br />URL: ".$resourceURLp1.$resourceURLp2." DATA: ".$data."<br />");
+				$orderItem=json_decode($data);
+				if(property_exists($orderItem,'resource')){
+					$ISBNcount=sizeof($orderItem->resource->worldcatResource->isbn);
+					if($ISBNcount>0){												//Seek 13-digit if one exists, otherwise use 10 (Does LibraryThing have a preferred ISBN format?)
+						$ISBN13Flag=false;
+						for($c=0;$c<$ISBNcount;$c++){
+							if(strlen($orderItem->resource->worldcatResource->isbn[$c])==13||substr($orderItem->resource->worldcatResource->isbn[$c],0,3)=='978'){
+								$isbn=substr($orderItem->resource->worldcatResource->isbn[$c],0,13);
+								$ISBN13Flag=true;
+								break;
+							}
+						}
+						if($ISBN13Flag==false){
+							$isbn=$orderItem->resource->worldcatResource->isbn[0];
+						}
+						if(strlen($isbn)>0&&strpos($isbn," ")>0){					//Just in case an ISBN with text sneaks in, just take the number
+							$isbn=substr($isbn,0,strpos($isbn," ")-1);
+						}
+					}
+					else{
+						$isbn="";
+					}
+					$isbnArray[$orderItemNum]=$isbn;
+					echo "<br />".strval($counter)." of ".sizeof($list).":<br />";
+					echo "ORDER I#:".$orderItemNum." ISBN=".$isbn;
+				}
+				else{
+					echo "<br />".strval($counter)." of ".sizeof($list).":<br />";
+					echo "ORDER I#:".$orderItemNum." ISBN=ORDER ITEM NOT FOUND";
+				}
+				$counter++;
+			}
+			echo "UPDATING DATABASE WITH NEW ISBNs...";
+			$msg=$this->Newbooks_model->updateISBNs($isbnArray);
+			echo " COMPLETE.".$msg;
+		}
 	}
 	
 	public function oclcTransmit($resourceURLp1,$resourceURLp2){					//Conducts all exchanges with API
@@ -424,9 +479,11 @@ class Bookfeed extends CI_Controller {
 		$ua=$keysArr[4];
 		$curl=curl_init($resourceURL);
 		curl_setopt($curl,CURLOPT_POST,false);
-		curl_setopt($curl,CURLOPT_RETURNTRANSFER,false);
+		curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+		curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
 		curl_setopt($curl,CURLOPT_USERAGENT,$ua);
+		curl_setopt($curl, CURLOPT_VERBOSE, 0);
 			//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
 			//$log='templog.txt';
 			//$filehandle=fopen($log,'a');
@@ -446,44 +503,39 @@ class Bookfeed extends CI_Controller {
 	
 	public function googleTransmit($isbn){											//Conducts all exchanges with Google Books API
 		$keysArr=$this->newbooksconfig->getKeys();
-		if($keysArr[5])!=""{
-			$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
-			$resourceURLp1="https://www.googleapis.com";
-			$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
-			$ua=$keysArr[4];
-			$curl=curl_init($resourceURLp1.$resourceURLp2);
-			curl_setopt($curl,CURLOPT_POST,false);
-			curl_setopt($curl,CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
-			curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
-			curl_setopt($curl,CURLOPT_USERAGENT,$ua);
-				//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
-				//$log='templog.txt';
-				//$filehandle=fopen($log,'a');
-				//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
-			$resp=curl_exec($curl);
-				//$resperror=curl_error($curl);
-			if (curl_errno($curl)) {
-				print_r("Error: ".curl_error($curl).curl_errno($curl)); 
-				print_r("\r\nResponse: ");
-				return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
-			}
-			else {
-				$respJSON=json_decode($resp);
-				echo "RESPONSE: ".$resp;
-				if(property_exists($respJSON,'items')==TRUE){
-					$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
-				}
-				else{
-					$coverURL="";
-				}
-				return $coverURL;
-			}
-			curl_close($curl);
+		$resourceURLp2="/books/v1/volumes?q=isbn:".$isbn."&fields=items/volumeInfo/imageLinks&key=".$keysArr[5];
+		$resourceURLp1="https://www.googleapis.com";
+		$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json");
+		$ua=$keysArr[4];
+		$curl=curl_init($resourceURLp1.$resourceURLp2);
+		curl_setopt($curl,CURLOPT_POST,false);
+		curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
+		curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+		curl_setopt($curl,CURLOPT_HTTP_VERSION,CURL_HTTP_VERSION_1_1);
+		curl_setopt($curl,CURLOPT_USERAGENT,$ua);
+			//curl_setopt($curl,CURLOPT_VERBOSE, true);								//For debugging
+			//$log='templog.txt';
+			//$filehandle=fopen($log,'a');
+			//curl_setopt($curl,CURLOPT_STDERR,$filehandle);
+		$resp=curl_exec($curl);
+			//$resperror=curl_error($curl);
+		if (curl_errno($curl)) {
+			print_r("Error: ".curl_error($curl).curl_errno($curl)); 
+			print_r("\r\nResponse: ");
+			return "Error ".$resourceURLp1.$resourceURLp2.var_dump($header);
 		}
-		else{
-			return "";
+		else {
+			$respJSON=json_decode($resp);
+			//echo "RESPONSE: ".$resp;
+			if(isObject($respJSON)&&property_exists($respJSON,'items')==TRUE){
+				$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
+			}
+			else{
+				$coverURL="";
+			}
+			return $coverURL;
 		}
+		curl_close($curl);
 	}
 	
 	

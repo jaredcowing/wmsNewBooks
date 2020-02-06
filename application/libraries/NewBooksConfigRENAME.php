@@ -1,36 +1,35 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-
 class NewBooksConfig {
-
         public function getKeys()
         {
-			$secretKey="";															//Place your OCLC shared secret key here
-			$wsKey="";											//Place your OCLC WSkey here
+			$secretKey="";				//Place your OCLC shared secret key here
+			$wsKey="";					//Place your OCLC WSkey here
 			$principalID="";
 			$principalIDNS="";
-			$userAgent="";										//Place your user agent here
-			$googleBooksKey="";									//Optional, leave blank if you don't have or intend to use this
-			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent,$googleBooksKey);
+			$userAgent="";				//Place your user agent here
+			$googleBooksKey="";			//Optional, leave blank if not using Google Books covers
+			$libraryThingKey="";		//Optional, leave blank if not using LibraryThing covers
+			return array($secretKey,$wsKey,$principalID,$principalIDNS,$userAgent,$googleBooksKey,$libraryThingKey);
         }
 		
 		public function getBaseURL(){
-			return "https://jaredcowing.com/newBooks";														//The location of your install, without a slash at end.
+			return "https://yoursite.com/newBooks";	//The location of your install, without a slash at end.
 		}
 		
 		public function getBranches(){
-			$branchesArr=array(																				//List your library branches here. The holdings code is the array key,
-			"OMBL"=>"Burbank",																				//and the branch's name is the value. Remember to add a comma after
-			"OMBS"=>"San Diego"																				//all but the last branch if you intend on adding more than 2 lines.
+			$branchesArr=array(			//List your library branches here. The holdings code is the array key,
+			"OMBL"=>"Burbank",			//and the branch's name is the value. Remember to add a comma after
+			"OMBS"=>"San Diego"			//all but the last branch if you intend on adding more than 2 lines.
 			);
 			return $branchesArr;
 		}
 		
 		public function getStatute(){
-			return "2018-07-01";																			//Books ordered before this date won't continually be checked in on ("we give up, that book isn't ever coming" or "that record may be a data entry error")
+			return "2018-07-01";		//Books ordered before this date won't continually be checked in on ("we give up, that book isn't ever coming" or "that record may be a fluke/data entry error")
 		}
 		
-		public function getSubjectDict(){						//Place your fund codes and fund names here
+		public function getSubjectDict(){	//Place your fund codes and fund names here
 			return array(
 				'ANIMB'=>'Animation',
 				'ANTHB'=>'Anthropology',
@@ -60,12 +59,20 @@ class NewBooksConfig {
 			);
 		}
 		
-		public function getMonthPad(){
-			return 3;																						//If you will determine "availability date" of books by their order date, enter here the number of months it typically takes from order to shelf-ready. SET TO ZERO IF YOU WILL BE USING RECEIPT DATE INSTEAD. This helps the application to estimate an "arrival date" (ready date) from patron's perspective.
+		/*You can determine a books "made available" date either by:
+		1) using the WMS Acquisitions order date (and adding some padding time for shippping & processing)
+		2) using the date the application first noticed an item record was created.
+		Note: Don't start using option #2 until after your application has been running for a few months;
+		the first time you load orders, all items received by that time will get 'dateAppear' set to that day (old items will appear to be new).
+		*/
+		public function getAgeDeterminant(){																
+			return 'order';		//For option #1 described above, set this string to 'order'; for option #2, set to 'receipt'.
 		}
 		
-		public function getAgeDeterminant(){																
-			return 'order';																					//Set string to 'order' if you would like availability dates to be estimated based on their order date.
-																											//Set string to 'receipt' if you would like application to use the date it first noticed an item record was created. Don't start using 'receipt' until after your application has been running for a few months; the first time you load orders, all items received by that time will get 'dateAppear' set to that day (old items will appear to be new).
+		/*If you chose 'order' (option #1) for determining date of availability, enter here the number of months it typically takes from order to shelf-ready.
+		If you chose 'receipt,' set this number to 0 (zero)*/
+		public function getMonthPad(){
+			return 3;
 		}
+		
 }

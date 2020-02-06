@@ -1,9 +1,9 @@
 <html>
         <head>
                 <title>New books</title>
-				<link rel="shortcut icon" href="https://libapps.s3.amazonaws.com/accounts/83281/images/sealtransp.png">
-				<link rel="stylesheet" type="text/css" href="https://jaredcowing.com/newBooks/newBooksM.css">
-				<script src="https://jaredcowing.com/lsci/jquery-2.1.4.min.js"></script>
-				<script type='text/javascript' src='https://jaredcowing.com/newBooks/newBooks.js'></script>
+				<link rel="shortcut icon" href="<?php echo $favicon; ?>">
+				<link rel="stylesheet" type="text/css" href="<?php echo $cssMobile; ?>">
+				<script src="<?php echo $jquery; ?>"></script>
+				<script type='text/javascript' src='<?php echo $javascript; ?>'></script>
         </head>
         <body>

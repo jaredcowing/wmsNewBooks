@@ -32,7 +32,7 @@ class Newbooks_model extends CI_Model{
 		else{
 			/*Order number is the primary key (and only attribute) for table "order." Table partly functions as nonclustering index to table "item" without pointers, though order
 			could exist with no items. No need to update/overwrite tuple if orderNum already exists. Revisit code if orders are ever deleted from table "item." */
-			$returnmsg="full: ".$order;
+			$returnmsg="<br />".$order." already loaded.";
 		}
 		return $returnmsg;
 	}

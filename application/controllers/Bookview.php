@@ -14,29 +14,33 @@ class Bookview extends CI_Controller {
 	
 	public function index()
 	{
+		$data=$this->newbooksconfig->getScriptBrandingURLs();
 		$data['age']="";
 		$data['fund']="";
 		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 		$data['size']='n';
-		$this->load->view('templates/header');
-		$this->load->view('templates/wumenu',$data);
+		$data['baseURL']=$this->newbooksconfig->getBaseURL();
+		$this->load->view('templates/header',$data);
+		$this->load->view('templates/menu',$data);
 		$this->load->view('templates/footer');
 	}
 
 	public function repeat($age,$facet,$size)
 	{
 		$facet=urldecode($facet);
+		$data=$this->newbooksconfig->getScriptBrandingURLs();
 		$data['age']=$age;
 		$data['fund']=$facet;
 		$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 		$data['size']=$size;
+		$data['baseURL']=$this->newbooksconfig->getBaseURL();
 		if($size!='m'){
-			$this->load->view('templates/header');
+			$this->load->view('templates/header',$data);
 		}
 		else{
-			$this->load->view('templates/headerM');
+			$this->load->view('templates/headerM',$data);
 		}
-		$this->load->view('templates/wumenu',$data);
+		$this->load->view('templates/menu',$data);
 		$this->load->view('templates/footer');
 	}
 	
@@ -149,11 +153,12 @@ class Bookview extends CI_Controller {
 	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size){
 		$keysArr=$this->newbooksconfig->getKeys();
 		$baseURL=$this->newbooksconfig->getBaseURL();
+		$data=$this->newbooksconfig->getScriptBrandingURLs();
 		if($size!='m'){
-			$this->load->view('templates/header');
+			$this->load->view('templates/header',$data);
 		}
 		else{
-			$this->load->view('templates/headerM');
+			$this->load->view('templates/headerM',$data);
 		}
 		echo "<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='/newBooks/images/spinning-wheel.gif'></img></div>";		//Using inline style to ensure it's applied early in the load process
 		if($type=='format'){
@@ -168,13 +173,15 @@ class Bookview extends CI_Controller {
 			$data['fund']=$facet;		//Consider renaming data sent to view since can now contain format
 			$data['subjDict']=$this->newbooksconfig->getSubjectDict();
 			$data['size']=$size;
-			$this->load->view('templates/wumenu',$data);
+			$data['baseURL']=$baseURL;
+			$this->load->view('templates/menu',$data);
 		}
 		else{
+			$catalogURL=$this->newbooksconfig->getCatalogURL();
 			if($type=='subject'){
 				$subjDict=$this->newbooksconfig->getSubjectDict();
 			}
-			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
+			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='/newBooks/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
 			if($dateCutoff!='ordered'){
@@ -233,7 +240,7 @@ class Bookview extends CI_Controller {
 			}
 			if($dupFlag==false){
 				array_push($ocns,$result[1]);
-				$echoString.="<a href='https://woodbury.on.worldcat.org/oclc/".$result[1]."' target='_blank'><div class='book'>";
+				$echoString.="<a href='".$catalogURL."/oclc/".$result[1]."' target='_blank'><div class='book'>";
 
 				if($result[4]=="BOOK"){
 					$echoString.="<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";

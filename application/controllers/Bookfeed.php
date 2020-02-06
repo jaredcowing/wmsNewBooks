@@ -29,8 +29,16 @@ class Bookfeed extends CI_Controller {
 			$startIndex=0;
 			$newAdds=array();														//This is just to populate the log afterwards
 			$newItems=array();														//This is just to populate the log afterwards
+			$statuteLimitations=$this->newbooksconfig->getStatute();
 			while($doneFlag==false){
 				$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=".$startIndex."&itemsPerPage=100";
+				/* The first time you run application, you may want to comment above line and uncomment the below.
+				If you do, also see similar comment a few lines below.
+				This will allow you to manually determine how many orders to test loading, instead of letting
+				application keep loading and loading tens of thousands of books all at once.
+				Especially important if using Google Books API because they will cap you at 1,000 requests per day!
+				*/
+				//$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=0&itemsPerPage=10";
 				$resourceURLp1="https://acq.sd00.worldcat.org";
 				$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 				$dataP=json_decode($data);
@@ -38,15 +46,21 @@ class Bookfeed extends CI_Controller {
 				$orderCount=0;
 				foreach($dataP2 as $order){
 					$orderCount++;
-					$msg=$this->Newbooks_model->saveOrder($order->purchaseOrderNumber);
-					if($msg=='ok'){
-						array_push($newAdds,$order->purchaseOrderNumber);
-						$newItemsMsg=$this->autoLoadItems($order->purchaseOrderNumber);
-						array_push($newItems,$newItemsMsg);
+					$orderDate=$order->insertTime;
+					if(date("Y:m:d",$orderDate/1000)>$statuteLimitations){		//If order was placed after statute of limitations
+						$msg=$this->Newbooks_model->saveOrder($order->purchaseOrderNumber);
+						if($msg=='ok'){
+							array_push($newAdds,$order->purchaseOrderNumber);
+							$newItemsMsg=$this->autoLoadItems($order->purchaseOrderNumber);
+							array_push($newItems,$newItemsMsg);
+						}
+						else{
+							$newItemsMsg="";
+							echo $msg;
+						}
 					}
-					else{
-						$newItemsMsg="";
-						echo $msg;
+					else{echo "<br />".$order->purchaseOrderNumber." ignored b/c ".date("Y:m:d",$orderDate/1000);					//Remove after testing
+						echo " precedes statute.";
 					}
 				}
 				if($orderCount<100){
@@ -54,6 +68,11 @@ class Bookfeed extends CI_Controller {
 				}
 				else{
 					$startIndex+=100;
+					/* The first time you run application, you may want to comment above line and uncomment the below.
+					This will stop application from automatically asking OCLC for more data once the above 'itemsPerPage' number of orders
+					has been ingested.
+					*/
+					//$doneFlag=true;
 				}
 			}
 			$newNum=count($newAdds);

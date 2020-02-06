@@ -14,13 +14,32 @@ class NewBooksConfig {
         }
 		
 		public function getBaseURL(){
-			return "https://yoursite.com/newBooks";	//The location of your install, without a slash at end.
+			return "https://yoursite.com/newBooks";		//The location of your install, without a slash at end.
 		}
 		
+		public function getCatalogURL(){
+			return "https://woodbury.on.worldcat.org";	//The location of your catalog, without a slash at end.
+		}
+		
+		public function getScriptBrandingURLs(){
+			$baseURL=$this->getBaseURL();
+			return array(
+				'favicon'=>'https://libapps.s3.amazonaws.com/accounts/83281/images/sealtransp.png',	//URL of the favicon you want to use
+				'cssRegular'=>$baseURL.'/newBooks.css',	//filename of your CSS script (leave alone unless you changed the name)
+				'cssMobile'=>$baseURL.'/newBooksM.css',	//filename of your mobile CSS script (leave alone unless you changed the name)
+				'jquery'=>'https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js',	//URL of jquery you want to use
+				'javascript'=>$baseURL.'/newBooks.js'	//URL of your javascript (leave alone unless you changed the name)
+			);
+		}
+		
+		/*List your library branches below. The holdings code is the array key,
+		and the branch's name is the value. Remember to add a comma after
+		each line except the last if you intend on adding more than 2 lines.
+		*/
 		public function getBranches(){
-			$branchesArr=array(			//List your library branches here. The holdings code is the array key,
-			"OMBL"=>"Burbank",			//and the branch's name is the value. Remember to add a comma after
-			"OMBS"=>"San Diego"			//all but the last branch if you intend on adding more than 2 lines.
+			$branchesArr=array(
+			"OMBL"=>"Burbank",
+			"OMBS"=>"San Diego"
 			);
 			return $branchesArr;
 		}

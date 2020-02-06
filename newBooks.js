@@ -1,8 +1,7 @@
 $(document).ready(function(){
-	
-	
-	
+	var baseURL="https://jaredcowing.com/newBooks";	//Put your base URL here, without end slash
 	window.onload=function(){
+	
 	$('.cover').each(function(){
 		if($(this).height()>30){
 			$(this).parent().addClass('coverUnfaded').find('.details').addClass('whiteBG').hide().parent().find('.title').addClass('whiteBG').hide().parent().css('background-color','transparent');
@@ -18,10 +17,11 @@ $(document).ready(function(){
 	$('#loadingCover').remove();
 	
 	$('body').on('keypress click','#newBooksGo',function(e){				//Just in case fund code has URL characters
+		
 		if(e.which === 13 || e.type === 'click'){
 			var fund=$('#subjectChooser').val();
 			var age=$('#dateChooser').val();
-			$('#newBooksGo img').attr('src','https://jaredcowing.com/newBooks/images/spinning-wheel.gif');
+			$('#newBooksGo img').attr('src',baseURL+'/images/spinning-wheel.gif');
 			$('#newBooksGo img').css('padding-top','15px');
 		}
 		while(fund.indexOf('&')!=-1){
@@ -33,7 +33,7 @@ $(document).ready(function(){
 			fund=fund.substr(0,whereisit)+"~~"+fund.substr(whereisit+1);
 		}
 		var urlpass=encodeURI(fund+"/"+age);
-		window.location.href="https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/"+urlpass;
+		window.location.href=baseURL+"/index.php/Bookview/viewFA/"+urlpass;
 		//alert(urlpass);
 	});
 	
@@ -41,7 +41,7 @@ $(document).ready(function(){
 		if(e.which === 13 || e.type === 'click'){
 			var fund=$('#subjectChooser').val();
 			var age=$('#dateChooser').val();
-			$('#newBooksGo img').attr('src','https://jaredcowing.com/newBooks/images/spinning-wheel.gif');
+			$('#newBooksGo img').attr('src',baseURL+'/images/spinning-wheel.gif');
 			$('#newBooksGo img').css('padding-top','15px');
 		}
 		while(fund.indexOf('&')!=-1){
@@ -53,7 +53,7 @@ $(document).ready(function(){
 			fund=fund.substr(0,whereisit)+"~~"+fund.substr(whereisit+1);
 		}
 		var urlpass=encodeURI(fund+"/"+age);
-		window.location.href="https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/"+urlpass+"/m";
+		window.location.href=baseURL+"/index.php/Bookview/viewFAS/"+urlpass+"/m";
 	});
 	
 	$('body').on('mouseenter','.coverUnfaded',function(){

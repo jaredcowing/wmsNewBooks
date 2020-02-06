@@ -1,4 +1,3 @@
-<script type='text/javascript' src='https://jaredcowing.com/newBooks/newBooks.js'></script>
 Show me print (physical) items the library has bought that are:
 <br />
 <select id='subjectChooser'>
@@ -32,4 +31,4 @@ Show me print (physical) items the library has bought that are:
 	<option value='order' <?php if($age=='order'){echo "selected";}?>>Show me what will be arriving soon!</option>
 </select>
 
-<div <?php if($size=='m'){echo "id='newBooksGoM'";} else{echo "id='newBooksGo'";}?> role='button' tabindex='0'><img src='https://s3.amazonaws.com/libapps/accounts/83281/images/ic_arrow_forward_black_24dp_2x.png' alt='Execute new books search'></img></div>
+<div <?php if($size=='m'){echo "id='newBooksGoM'";} else{echo "id='newBooksGo'";}?> role='button' tabindex='0'><img src='<?php echo $baseURL;?>/images/ic_arrow_forward_black_24dp_2x.png' alt='Execute new books search'></img></div>

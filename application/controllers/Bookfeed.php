@@ -530,9 +530,6 @@ class Bookfeed extends CI_Controller {
 			if(isObject($respJSON)&&property_exists($respJSON,'items')==TRUE){
 				$coverURL=$respJSON->items[0]->volumeInfo->imageLinks->thumbnail;
 			}
-			else{
-				$coverURL="";
-			}
 			else if($respJSON=='{}'){
 				$coverURL="";
 			}

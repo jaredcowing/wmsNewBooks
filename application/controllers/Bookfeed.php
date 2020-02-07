@@ -20,7 +20,7 @@ class Bookfeed extends CI_Controller {
 	
 	public function load($target){
 	/*Load function will request & ingest data from OCLC
-	orders=load new orders & populate any copies/items therein
+	orders=load new orders & trigger functions to populate any copies/items therein
 	items=manually trigger item load on a hard-coded order number and display results, for testing only
 	copies=manually trigger copy load on a hard-coded OCN and display results, for testing only
 	*/
@@ -81,7 +81,7 @@ class Bookfeed extends CI_Controller {
 				echo "<br />".$newOrder;
 			}
 		}
-		if($target=='items'){											//This is purely for data reference purposes. Live method is autoLoadItems which will be called in cascading manner from load/orders
+		if($target=='items'){											//This is purely for testing purposes. Live method is autoLoadItems which will be called in cascading manner from load/orders
 			$resourceURLp2="/purchaseorders/PO-2018-15/items?itemsPerPage=400";
 			$resourceURLp1="https://acq.sd00.worldcat.org";
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
@@ -89,7 +89,7 @@ class Bookfeed extends CI_Controller {
 			$dataP2=$dataP->entry;
 			var_dump($dataP2);
 		}
-		if($target=='copies'){											//This is purely for data reference purposes. Live method is autoLoadItems which will be called in cascading manner from load/orders
+		if($target=='copies'){											//This is purely for testing purposes. Live method is autoLoadItems which will be called in cascading manner from load/orders
 			$resourceURLp2="/LHR/?q=oclc:889181872";					//Acq-Copy data is almost always outdated; I assume it must be from when copy is recieved. Use LHR instead.
 			$resourceURLp1="https://circ.sd00.worldcat.org";
 			$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
@@ -99,7 +99,7 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 
-	public function autoLoadItems($orderNum){							//Could be called via URL but generally this function will only be utilized internally by above load order function
+	public function autoLoadItems($orderNum){							//Could be called via URL but generally this function will only be called internally by above load order function
 		$resourceURLp2="/purchaseorders/".$orderNum."/items?itemsPerPage=400";
 		$resourceURLp1="https://acq.sd00.worldcat.org";
 		$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
@@ -185,7 +185,7 @@ class Bookfeed extends CI_Controller {
 			else{
 				$orderDate="";
 			}
-			$coverURL=$this->googleTransmit($isbn);
+			$coverURL=$this->googleTransmit($isbn);								//Retrieve cover image from Google Books API
 			$msg=$this->Newbooks_model->saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL);
 			if($msg=='ok'){
 				array_push($newAdds,$title);
@@ -225,7 +225,7 @@ class Bookfeed extends CI_Controller {
 					if(count($copyObj->shelvingDesignation->information)>0){
 						$callNum=$copyObj->shelvingDesignation->information;
 						foreach($copyObj->shelvingDesignation->itemPart as $cutter){
-							$callNum=$callNum." ".$cutter;														//Revisit to implement spacing nuances (Dewey might have different needs)
+							$callNum=$callNum." ".$cutter;						//Revisit to implement spacing nuances (Dewey might have different needs)
 						}
 					}
 					else{
@@ -235,13 +235,12 @@ class Bookfeed extends CI_Controller {
 				else{
 					$callNum="";
 				}
-				if(count($copyObj->holding[0]->pieceDesignation)>0){											//Revisit to ensure that there aren't ever multiple "holdings" children in this type of data
+				if(count($copyObj->holding[0]->pieceDesignation)>0){			//Revisit to ensure that there aren't ever multiple "holdings" children in this type of data
 					$barcode=$copyObj->holding[0]->pieceDesignation[0];
 				}
 				else{
 					$barcode="";
 				}
-				//echo $branch.$location.$callNum;
 				$msg=$this->Newbooks_model->saveCopy($ocn,$branch,$location,$callNum,$barcode);
 				echo "<br />".$branch." ".$location." ".$callNum." ".$barcode. " copy loaded";
 				if($callNum==""){
@@ -254,6 +253,10 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
+	/*
+	This function is intended to be called manually via URL. It will check on unreceived items and, if cancelled or received, update status accordingly.
+	Items found to be received since last check will have copy info retrieved or updated.
+	*/
 	public function autoUpdateReceived($ph){								//If there are items marked received with no copy attached (rare), enter parameter 'awaitingcopy'
 		$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
 		if($ph=='awaitingcopy'){
@@ -302,12 +305,20 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
-	//This function lists all items in local db with a) no call number, or b) "in processing" as call number to update.
+	/*
+	This function is for testing. It simply lists all items in local db with a) no call number, or b) "in processing" as call number to update.
+	Use it for when you'd like to see which items would be affected by the autoUpdateCopies method.
+	*/
 	public function testBranchE($ph){	
 		$list=$this->Newbooks_model->loadBranchE();
 		var_dump($list);
 	}
 	
+	/*
+	This function is intended to be called manually via URL. It will find any copies in local db that are lacking call numbers
+	(or alternatively, have 'in processing' as the call number). Any such copies will be updated/replaced with refreshed copy
+	data from OCLC (Collection Management API).
+	*/
 	public function autoUpdateCopies($ph){	
 		$statuteLimitations=$this->newbooksconfig->getStatute();			//Can also use this function to alternatively handle "in-processing" call numbers if placeholder $ph so specifies
 		if($ph=='processing'){
@@ -379,7 +390,10 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
-	public function refreshCoverURL($pw){										//Use carefully, this is for database maintenance if you think coverURLs need a refresh
+	/*Use carefully, this is for database maintenance if you think coverURLs from Google Books need a refresh.
+	Without modification, it will do so for all your ISBN's.. which will be a lot and probably cause
+	you to hit your 1,000-request daily cap with Google Books.
+	public function refreshCoverURL($pw){
 		if($pw=='LearningDoingSucceeding1884'){
 			$isbnArray=$this->Newbooks_model->loadISBNs();
 			$coverURLarray=array();
@@ -400,9 +414,12 @@ class Bookfeed extends CI_Controller {
 		}
 		$msg=$this->Newbooks_model->updateCoverURLs($coverURLarray);
 		echo $msg;
-	}
+	}*/
 	
-	public function refreshISBNs($pw){											//Use carefully, this is for database maintenance if you think ISBNs need a refresh
+	/*
+	Use carefully, this is for database maintenance if you think ISBNs need a refresh.
+	Without modification, it will do so for all your ISBN's.. which will be a lot.
+	public function refreshISBNs($pw){
 		if($pw=='LearningDoingSucceeding1884'){
 			//$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
 			$list=$this->Newbooks_model->loadOINs();
@@ -450,8 +467,12 @@ class Bookfeed extends CI_Controller {
 			$msg=$this->Newbooks_model->updateISBNs($isbnArray);
 			echo " COMPLETE.".$msg;
 		}
-	}
+	}*/
 	
+	/*
+	This is the method that will make API requests to OCLC. Several lines of code borrowed with gratitude from
+	Karen Coombs's authentication library (and so marked in comments).
+	*/
 	public function oclcTransmit($resourceURLp1,$resourceURLp2){					//Conducts all exchanges with API
 		$resourceURL=$resourceURLp1.$resourceURLp2;
 		$keysArr=$this->newbooksconfig->getKeys();

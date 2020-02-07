@@ -12,6 +12,7 @@ class Bookview extends CI_Controller {
 		$this->load->library('newBooksConfig');
 	}
 	
+	/* Load main menu. */
 	public function index()
 	{
 		$data=$this->newbooksconfig->getScriptBrandingURLs();
@@ -25,6 +26,7 @@ class Bookview extends CI_Controller {
 		$this->load->view('templates/footer');
 	}
 
+	/* Load main menu, but remember some settings from a previous search. */
 	public function repeat($age,$facet,$size)
 	{
 		$facet=urldecode($facet);
@@ -44,21 +46,24 @@ class Bookview extends CI_Controller {
 		$this->load->view('templates/footer');
 	}
 	
+	/* View books filtered to a fund. */
 	public function viewF($fund){				//If no size specified, default to normal
 		$this->viewFS($fund,"n");
 	}
 	
+	/* View books filtered to a fund and display size. */
 	public function viewFS($fund,$size){
 		$fund=urldecode($fund);
 		$list=$this->Newbooks_model->loadList($fund);
 		$this->displayBookResults(array_push($list,$size));
 	}
 	
-
+	/* View books filtered to a fund and age. */
 	public function viewFA($fund,$age){			//Fund, Age; If no size specified, default to normal
 		$this->viewFAS($fund,$age,'n');
 	}
 	
+	/* View books filtered to a fund, age and display size. */
 	public function viewFAS($fund,$age,$size){	//Fund, Age, Size; Fund variable may now also contain format, might re-name this
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
@@ -137,10 +142,16 @@ class Bookview extends CI_Controller {
 		}
 	}
 
+	/* View books filtered to a fund, age and in test mode.
+	Currently "test mode" will try to load cover images from Google Books in real-time.
+	It's much slower than getting those cover URL's ahead of time and stored in MySQL
+	(which Bookfeed controller already does).
+	*/
 	public function viewFAT($fund,$age){			//Fund, Age, Testmode
 		$this->viewFAS($fund,$age,'t');
 	}
 	
+	/* Translate holdings code to the human-readable name of a library branch. */
 	public function branchTranslate($code){
 		$branchesArr=$this->newbooksconfig->getBranches();
 		foreach($branchesArr as $memCode=>$memBranch){
@@ -150,6 +161,7 @@ class Bookview extends CI_Controller {
 		}
 	}
 	
+	/* Once book results have been retrieved, this method will load necessary views to present them to the end user. */
 	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size){
 		$keysArr=$this->newbooksconfig->getKeys();
 		$baseURL=$this->newbooksconfig->getBaseURL();
@@ -252,12 +264,12 @@ class Bookview extends CI_Controller {
 					$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
 				}
 				if(substr($result[2],-5)!="isbn/"){
-					//$echoString.="<img class='cover' src='".$result[2]."'></img>";
 					if($result[5]!=0){
-						if($size!='t'){
+						if($size!='t'){		//Default method for determining the URL of a book cover.
 							if($result[2]!=""){
 								$echoString.="<img class='cover' src='".$result[2]."' alt='".$result[0]." cover image'></img>";
 							}
+							//Currently if no Google Books cover URL on file, videos will try to get an image from Library Thing and books will try OpenLibrary.
 							else if($result[4]=='VIDEO_DVD'||$result[4]=='VIDEO_BLURAY'){
 								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
 							}
@@ -265,13 +277,12 @@ class Bookview extends CI_Controller {
 								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
 							}
 						}
-						else{															//Use this space for testing new image loading sources, accessed through viewFAT method
+						else{				//This isn't really a "size," it's triggered when in "testing mode" which forces Google Books cover URL's to be retrieved in real-time. Slow and not recommended.															//Use this space for testing new image loading sources, accessed through viewFAT method
 							$coverURL=$this->googleTransmit($result[5]);
 							if($coverURL!="{}"){										//If Google returned an image
 								$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
 							}
 							else{
-								//$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
 								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
 							}
 						}

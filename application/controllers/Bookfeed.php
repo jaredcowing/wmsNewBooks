@@ -308,8 +308,8 @@ class Bookfeed extends CI_Controller {
 		var_dump($list);
 	}
 	
-	public function autoUpdateBranchE($ph){	
-		$statuteLimitations=$this->newbooksconfig->getStatute();			//Now piggybacking on this function to handle in-processing call numbers if placeholder $ph so specifies
+	public function autoUpdateCopies($ph){	
+		$statuteLimitations=$this->newbooksconfig->getStatute();			//Can also use this function to alternatively handle "in-processing" call numbers if placeholder $ph so specifies
 		if($ph=='processing'){
 			$list=$this->Newbooks_model->loadCallProc();
 		}

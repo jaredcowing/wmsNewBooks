@@ -55,7 +55,17 @@ class Bookview extends CI_Controller {
 	public function viewFS($fund,$size){
 		$fund=urldecode($fund);
 		$list=$this->Newbooks_model->loadList($fund);
-		$this->displayBookResults(array_push($list,$size));
+		if(strpos($fund,"SFormat_")!==false){
+			$type='format';
+			$facet=substr($fund,8);
+		}
+		else{
+			$type='subject';
+			$facet=$fund;
+		}
+		$dateCutoff="none";
+		$age="all";
+		$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size);
 	}
 	
 	/* View books filtered to a fund and age. */
@@ -196,7 +206,11 @@ class Bookview extends CI_Controller {
 			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='/newBooks/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
 			
 			echo "<br /><div class='resultsHead'><strong>";
-			if($dateCutoff!='ordered'){
+			if($dateCutoff=='none'){
+				if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos "; }
+				else if($type=='format'){ echo "New ".$facet." "; }
+			}
+			else if($dateCutoff!='ordered'){
 				if($facet=='All'){ echo "All newly bought books and videos from the last "; }
 				else if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos bought from the last "; }
 				else if($type=='format'){ echo "New ".$facet." bought from the last "; }

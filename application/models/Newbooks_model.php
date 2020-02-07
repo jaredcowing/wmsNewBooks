@@ -122,88 +122,7 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
-	public function loadISBNs(){
-		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL !='' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 100");		//This logic is custom to my installation for special cleanup
-		$resultsList=array();
-		foreach($data->result() as $result){
-			$orderItemNum=$result->orderItemNum;
-			$isbn=$result->isbn;
-			$resultsList[$orderItemNum]=$isbn;
-		}
-		return $resultsList;
-	}
-	
-	public function loadOINs(){
-		$data=$this->db->query("SELECT orderItemNum, orderNum FROM item WHERE coverURL NOT LIKE '%google%' AND isbn NOT LIKE '%978%' ORDER BY orderItemNum DESC LIMIT 500");		//This logic is custom to my installation for special cleanup
-		$resultsList=array();
-		foreach($data->result() as $result){
-			$orderItemNum=$result->orderItemNum;
-			$orderNum=$result->orderNum;
-			$resultsList[$orderItemNum]=$orderNum;
-		}
-		return $resultsList;
-	}
-	
-	public function loadList($fund){
-		if($fund=='all'){
-			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
-		}
-		else{
-			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."';");
-		}
-		$resultsList=array();
-		foreach($data->result() as $result){
-			$ocn=$result->ocn;
-			$dupFlag=false;	/* The below de-duplication loop was at last check not working, filtering loop currently active in controller */
-			foreach($resultsList as $resultMaster){
-				if($ocn==$resultMaster[1]){
-					$dupFlag=true;
-				}
-			}
-			if($dupFlag==false){
-				$copiesList=array();
-				$data2=$this->db->get_where('copy',array('ocn' => $ocn));
-				foreach($data2->result() as $result2){
-					if(strlen($result2->callNum)>0){
-						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
-					}
-				}
-				if(sizeOf($copiesList>0)){
-					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
-				}
-			}
-		}
-		return $resultsList;
-	}
-	
-	public function loadExpecting($date){
-		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
-		$resultsArr=array();
-		foreach($data->result() as $result){
-			$orderItemNum=$result->orderItemNum;
-			$resultsArr[$orderItemNum][0]=$result->orderNum;
-			$resultsArr[$orderItemNum][1]=$result->ocn;
-			$resultsArr[$orderItemNum][2]=$result->title;
-		}
-		return $resultsArr;
-	}
-	
-	public function loadExpecting2($date){
-		$data2=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
-		$resultsArr=array();
-		foreach($data2->result() as $result){
-			$data3=$this->db->query("SELECT * FROM copy WHERE ocn='".$result->ocn."';");
-			if(count($data3->result())==0){
-				$orderItemNum=$result->orderItemNum;
-				$resultsArr[$orderItemNum][0]=$result->orderNum;
-				$resultsArr[$orderItemNum][1]=$result->ocn;
-				$resultsArr[$orderItemNum][2]=$result->title;
-			}
-		}
-		return $resultsArr;
-	}
-	
-	public function loadBranchE(){
+		public function loadBranchE(){
 		$data=$this->db->query("SELECT * FROM copy WHERE (branch = '' OR callNum = '');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
@@ -237,6 +156,79 @@ class Newbooks_model extends CI_Model{
 			}
 		}
 		return $resultsArr;
+	}
+	
+	public function loadExpecting($date){
+		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
+		$resultsArr=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$resultsArr[$orderItemNum][0]=$result->orderNum;
+			$resultsArr[$orderItemNum][1]=$result->ocn;
+			$resultsArr[$orderItemNum][2]=$result->title;
+		}
+		return $resultsArr;
+	}
+	
+	public function loadExpecting2($date){
+		$data2=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
+		$resultsArr=array();
+		foreach($data2->result() as $result){
+			$data3=$this->db->query("SELECT * FROM copy WHERE ocn='".$result->ocn."';");
+			if(count($data3->result())==0){
+				$orderItemNum=$result->orderItemNum;
+				$resultsArr[$orderItemNum][0]=$result->orderNum;
+				$resultsArr[$orderItemNum][1]=$result->ocn;
+				$resultsArr[$orderItemNum][2]=$result->title;
+			}
+		}
+		return $resultsArr;
+	}
+	
+	public function loadISBNs(){
+		$data=$this->db->query("SELECT orderItemNum, isbn FROM item WHERE coverURL !='' AND coverURL NOT LIKE '%google%' ORDER BY orderItemNum DESC LIMIT 100");		//This logic is custom to my installation for special cleanup
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$isbn=$result->isbn;
+			$resultsList[$orderItemNum]=$isbn;
+		}
+		return $resultsList;
+	}
+	
+	public function loadList($fund){
+		if($fund=='all'){
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
+		}
+		else{
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."';");
+		}
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$ocn=$result->ocn;
+			$dupFlag=false;	/* The below de-duplication loop was at last check not working, filtering loop currently active in controller */
+			foreach($resultsList as $resultMaster){
+				if($ocn==$resultMaster[1]){
+					$dupFlag=true;
+				}
+			}
+			if($dupFlag==false){
+				$copiesList=array();
+				$data2=$this->db->get_where('copy',array('ocn' => $ocn));
+				foreach($data2->result() as $result2){
+					if(strlen($result2->callNum)>0){
+						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
+					}
+				}
+				if(sizeOf($copiesList)>0){
+					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
+				}
+				else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
+					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
+				}
+			}
+		}
+		return $resultsList;
 	}
 	
 	public function loadList2($type,$facet,$date,$ageDeterminant){		//For fund/format and date
@@ -332,6 +324,17 @@ class Newbooks_model extends CI_Model{
 			else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
 				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
 			}
+		}
+		return $resultsList;
+	}
+	
+	public function loadOINs(){
+		$data=$this->db->query("SELECT orderItemNum, orderNum FROM item WHERE coverURL NOT LIKE '%google%' AND isbn NOT LIKE '%978%' ORDER BY orderItemNum DESC LIMIT 500");		//This logic is custom to my installation for special cleanup
+		$resultsList=array();
+		foreach($data->result() as $result){
+			$orderItemNum=$result->orderItemNum;
+			$orderNum=$result->orderNum;
+			$resultsList[$orderItemNum]=$orderNum;
 		}
 		return $resultsList;
 	}

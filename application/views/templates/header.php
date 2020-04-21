@@ -1,4 +1,4 @@
-<html>
+<html lang='en'>
         <head>
                 <title>New books</title>
 				<link rel="shortcut icon" href="<?php echo $favicon; ?>">

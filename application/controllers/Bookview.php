@@ -9,6 +9,7 @@ class Bookview extends CI_Controller {
 		$this->load->library('session');
 		$this->load->helper('form');
 		$this->load->library('form_validation');
+		$this->load->library('pagination');
 		$this->load->library('newBooksConfig');
 	}
 	
@@ -65,7 +66,7 @@ class Bookview extends CI_Controller {
 		}
 		$dateCutoff="none";
 		$age="all";
-		$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size);
+		$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size,0,count($list));
 	}
 	
 	/* View books filtered to a fund and age. */
@@ -74,7 +75,16 @@ class Bookview extends CI_Controller {
 	}
 	
 	/* View books filtered to a fund, age and display size. */
-	public function viewFAS($fund,$age,$size){	//Fund, Age, Size; Fund variable may now also contain format, might re-name this
+	public function viewFAS(){	//Fund, Age, Size, StartPosition; Fund variable may now also contain format, might re-name this
+		$args=func_get_args();
+		$fund=$args[0];
+		$age=$args[1];
+		$size=$args[2];
+		if(count($args)>3){
+			$startPos=$args[3];
+		}
+		else{$startPos=0;}
+		$startPosInt=intval($startPos);
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
 			$fund=substr($fund,0,$whereisit)."&".substr($fund,$whereisit+6);
@@ -148,7 +158,16 @@ class Bookview extends CI_Controller {
 				$dateCutoff='ordered';
 			}
 			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
-			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
+			/* De-duplication currently happens later during display, which can throw off the number of items per page
+			determined up here.
+			If inconsistent number of items per page becomes a bother, de-duplicate up here and see if that additional
+			loop has impact on performance with large results.
+			*/
+			$resultsTotal=count($list);
+			if($resultsTotal>30){
+				$list=array_slice($list,$startPosInt,30);
+			}
+			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size,$startPosInt,$resultsTotal);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
 		}
 	}
 
@@ -157,8 +176,9 @@ class Bookview extends CI_Controller {
 	It's much slower than getting those cover URL's ahead of time and stored in MySQL
 	(which Bookfeed controller already does).
 	*/
-	public function viewFAT($fund,$age){			//Fund, Age, Testmode
-		$this->viewFAS($fund,$age,'t');
+	public function viewFAT($fund,$age,$startPos){			//Fund, Age, Testmode
+		$startPosInt=intval($startPos);
+		$this->viewFAS($fund,$age,'t',$startPosInt);
 	}
 	
 	/* Translate holdings code to the human-readable name of a library branch. */
@@ -172,7 +192,7 @@ class Bookview extends CI_Controller {
 	}
 	
 	/* Once book results have been retrieved, this method will load necessary views to present them to the end user. */
-	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size){
+	public function displayBookResults($type,$list,$facet,$dateCutoff,$age,$size,$startPos,$resultsTotal){
 		$keysArr=$this->newbooksconfig->getKeys();
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		$data=$this->newbooksconfig->getScriptBrandingURLs();
@@ -292,13 +312,13 @@ class Bookview extends CI_Controller {
 							}
 						}
 						else{				//This isn't really a "size," it's triggered when in "testing mode" which forces Google Books cover URL's to be retrieved in real-time. Slow and not recommended.															//Use this space for testing new image loading sources, accessed through viewFAT method
-							$coverURL=$this->googleTransmit($result[5]);
+							/*$coverURL=$this->googleTransmit($result[5]);
 							if($coverURL!="{}"){										//If Google returned an image
 								$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
 							}
 							else{
 								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
-							}
+							}*/
 						}
 					}
 				}
@@ -310,7 +330,28 @@ class Bookview extends CI_Controller {
 				$echoString.="</div></div></a>";
 			}
 		}
-		echo $echoString;		
+		echo $echoString;
+		$data['baseURL']=$this->newbooksconfig->getBaseURL();
+		$config['base_url']=$data['baseURL'].'/index.php/Bookview/viewFAS/'.$facet.'/'.$age.'/'.$size;
+		$config['total_rows']=$resultsTotal;
+		$config['per_page']=30;
+		$config['full_tag_open'] = "<div class='pag'>";
+		$config['full_tag_close'] = '</div>';
+		$config['first_tag_open'] = "<div class='pagFirst'>";
+		$config['first_tag_close'] = '</div>';
+		$config['first_url'] = $data['baseURL'].'/index.php/Bookview/viewFAS/'.$facet.'/'.$age.'/'.$size.'/0';
+		$config['prev_tag_open'] = "<div class='pagPrev'>";
+		$config['prev_tag_close'] = '</div>';
+		$config['cur_tag_open'] = "<div class='pagCur'>";
+		$config['cur_tag_close'] = '</div>';
+		$config['num_tag_open'] = "<div class='pagNum'>";
+		$config['num_tag_close'] = '</div>';
+		$config['next_tag_open'] = "<div class='pagNext'>";
+		$config['next_tag_close'] = "</div>";
+		$config['last_tag_open'] = "<div class='pagLast'>";
+		$config['last_tag_close'] = "</div>";
+		$this->pagination->initialize($config);
+		echo $this->pagination->create_links();
 		$this->load->view('templates/footer');
 	}
 	

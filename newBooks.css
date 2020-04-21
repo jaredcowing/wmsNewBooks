@@ -18,3 +18,9 @@ body{font-family:calibri;background-color:rgb(50,50,50);color:white;}
 #newBooksBack{border-radius:4px;background-color:#5bc0de;border-color:#46b8da;width:50px;margin-top:10px;position:fixed;z-index:3;transition:.3s;}
 #newBooksBack:hover{cursor:pointer;-webkit-transform:scale(1.1);transform:scale(1.1);-ms-transform:scale(1.1);}
 #newBooksGo img{display:block;margin-left:auto;margin-right:auto;}
+
+.pag {margin-bottom:20px;max-width:350px;text-align:center;margin-left:auto;margin-right:auto;}
+.pag div{display:inline-block;margin-left:10px;}
+.pag a{color:white;font-size:20pt;}
+.pag a:visited{color:yellow;}
+.pagCur {color:silver;font-style:italic;font-size:20pt;}

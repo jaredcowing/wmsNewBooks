@@ -1,20 +1,20 @@
-body{font-family:calibri;background-color:rgb(50,50,50);color:white;}
+
 .book{transition:.3s;font-family:calibri;font-size:11pt;width:110px;height:150px;margin:10px;background-color:cornsilk;padding:5px;display:inline-block;position:relative;vertical-align:top;background-repeat:no-repeat;background-position:center;}
-.book:hover{-webkit-transform:scale(1.1);transform:scale(1.1);-ms-transform:scale(1.1);transition:.3s;}
+
 .title{position:absolute;z-index:2;width:110px;margin-left:auto;margin-right:auto;max-height:80px;overflow-y:hidden;}
 .details{position:absolute;bottom:10px;z-index:2;width:110px;margin-left:auto;margin-right:auto;max-height:75px;overflow-y:hidden;overflow-x:hidden;}
 .whiteBG{background-color:white;padding:5px;border-radius:5px;width:100px;font-size:10pt;} /* For book details that are over a cover image */
 .cover{z-index:0;position:absolute;top:0px;left:0px;max-width:110px;max-height:150px;}
-.bookMask{position:absolute;z-index:1;background-color:rgba(0,0,0,.8);width:100%;height:100%;top:0px;left:0px;}
+
 .format{display:block;position:absolute;left:25px;top:35px;width:60px;opacity:.15;}
-.callNum{width:110px;}
-.location{display:inline-block;}
-.branch{display:inline-block;margin-right:8px;}
+
+
+
 .resultsHead{margin-left:55px;font-size:12pt;position:fixed;top:20px;z-index:3;background-color:rgb(50,50,50);padding:8px;}
-.bloc{background-color:gray;color:white;display:inline-block;padding-left:4px;padding-right:4px;margin-bottom:4px;}
+
 
 #newBooksGoM{border-radius:4px;background-color:#5bc0de;border-color:#46b8da;width:50px;height:50px;margin-top:10px;transition:.3s;}
 #newBooksGoM:hover{cursor:pointer;-webkit-transform:scale(1.1);transform:scale(1.1);-ms-transform:scale(1.1);}
-#newBooksBack{border-radius:4px;background-color:#5bc0de;border-color:#46b8da;width:50px;margin-top:10px;position:fixed;z-index:3;transition:.3s;}
-#newBooksBack:hover{cursor:pointer;-webkit-transform:scale(1.1);transform:scale(1.1);-ms-transform:scale(1.1);}
+
+
 #newBooksGoM img{display:block;margin-left:auto;margin-right:auto;}

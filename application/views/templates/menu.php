@@ -1,4 +1,4 @@
-Show me print (physical) items the library has bought that are:
+<label for='subjectChooser'>Show me print (physical) items the library has bought that are:</label>
 <br />
 <select id='subjectChooser'>
 	<!--<option value='all'>All subjects</option>-->
@@ -20,7 +20,7 @@ Show me print (physical) items the library has bought that are:
 	<option value='All'>Show me everything!</option>
 </select>
 <br /><br />
-...and that have arrived in the library in the past:
+<label for='dateChooser'>...and that have arrived in the library in the past:</label>
 <br />
 <select id='dateChooser'>
 	<!--<option value='1M' <?php if($age=='1M'){echo "selected";}?>>1 month</option>-->

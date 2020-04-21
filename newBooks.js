@@ -3,7 +3,7 @@ $(document).ready(function(){
 	window.onload=function(){
 	
 	$('.cover').each(function(){
-		if($(this).height()>30){
+		if($(this).height()>80){
 			$(this).parent().addClass('coverUnfaded').find('.details').addClass('whiteBG').hide().parent().find('.title').addClass('whiteBG').hide().parent().css('background-color','transparent');
 			$(this).parent().append("<div class='bookMask'></div>");
 			$(this).css({'width':'200px','height':'auto','max-height':'250px'});
@@ -52,7 +52,7 @@ $(document).ready(function(){
 			var whereisit=fund.indexOf('/');
 			fund=fund.substr(0,whereisit)+"~~"+fund.substr(whereisit+1);
 		}
-		var urlpass=encodeURI(fund+"/"+age);
+		var urlpass=encodeURI(fund+"/"+age+"/0");
 		window.location.href=baseURL+"/index.php/Bookview/viewFAS/"+urlpass+"/m";
 	});
 	
@@ -65,5 +65,9 @@ $(document).ready(function(){
 		$(this).find('.details').fadeOut('200');
 		$(this).find('.title').fadeOut('200');
 		$(this).find('.bookMask').fadeOut('200');
+	});
+	$("img").on("error", function () {
+		$(this).parent().removeClass('coverUnfaded');
+		$(this).remove();
 	});
 });

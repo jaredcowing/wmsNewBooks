@@ -24,9 +24,9 @@ To install a version to test with at your own library, you will need the followi
 
     * *(This type of access will be changing per OCLC, but for now it will work, I’ll update notes to reflect new API access method once that time comes)*
 
-* *(Optional) *A [Google Books API key](https://cloud.google.com/docs/authentication/api-keys?visit_id=637155151722963656-1968642627&rd=1)
+* _(Optional)_ A [Google Books API key](https://cloud.google.com/docs/authentication/api-keys?visit_id=637155151722963656-1968642627&rd=1)
 
-* *(Optional) *A [LibraryThing developer key](http://www.librarything.com/services/keys.php)
+* _(Optional)_ A [LibraryThing developer key](http://www.librarything.com/services/keys.php)
 
 * A willingness to experience a setback or two! These things rarely go perfectly and by-the-book, and that’s OK since our libraries and needs are different.
 
@@ -48,21 +48,21 @@ Your MySQL database should now be ready to receive book data! Now it’s time to
 
     1. Rename file to database.php (this file will contain sensitive information, so if you make this a repo make sure to ignore this file). Set the following variables:
 
-    2. username = the username of a user authorized to create/read/update/delete (CRUD) in your database
+    2. `username` = the username of a user authorized to create/read/update/delete (CRUD) in your database
 
-    3. password = that user’s password
+    3. `password` = that user’s password
 
-    4. database **= **name of the db created in MySQL
+    4. `database` = name of the db created in MySQL
 
 7. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
 
-    5. $config['base_url'] = '[https://yoururl/path](https://yoururl/path/)'; *(no slash at end)*
+    5. `$config['base_url'] = '[https://yoururl/path](https://yoururl/path/)';` *(no slash at end)*
 
-    6. $config['sess_driver'] = 'files';
+    6. `$config['sess_driver'] = 'files'`;
 
     7. You may keep session data set to ‘database’ like I do (sessions are stored in a MySQL database), but if you do then a little [extra setup is required](https://codeigniter.com/user_guide/libraries/sessions.html#session-drivers). Storing session data in files is the simplest option.
 
-8. Open newbooks.js and set var baseURL="[https://yoururl/path](https://yoururl/path)"; *(no slash at end)*
+8. Open newbooks.js and set `var baseURL="[https://yoururl/path](https://yoururl/path)";` *(no slash at end)*
 
 9. **Finally, the library-specific customizations:** Go to application/libraries/newBooksConfigRENAME.php (this is where application-specific settings are to help you customize to your library)
 
@@ -90,15 +90,15 @@ The application is controlled by URL commands; you navigate to a URL containing 
 
     5. Find these lines in the load function and comment/uncomment such that it reads :
 
-else{ //startIndex +=100;
+```else{ //startIndex +=100;
 
-$doneFlag=true; }
+$doneFlag=true; }```
 
 (This prevents the application from automatically getting more orders once it’s digested its first "gulp").
 
 Then change itemsPerPage in the below line to reflect the number of orders you want to load in each "gulp" of order data, and startIndex to the number where you left off last time you loaded orders:
 
-$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=**0**&itemsPerPage=**100**";
+`$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=**0**&itemsPerPage=**100**";`
 
 3. Now you’re ready to run the order command. Enter this URL: https://your/URL/index.php/Bookfeed/load/orders
 
@@ -110,7 +110,7 @@ When executing any of the below commands, a raw-text feed of status messages wil
 
 ## Loading new orders, copies & items:
 
-https://your/URL/index.php/Bookfeed/load/orders
+`https://your/URL/index.php/Bookfeed/load/orders`
 
 This command will tell the application to retrieve orderNumbers from all placed orders in WMS. For each orderNumber it gets, it will check to see if your local database already has that number on file (has loaded the order). If it’s a new orderNumber, then it proceeds to load all items associated with that order, and any copies associated with that OCLC number.
 
@@ -122,7 +122,7 @@ To view and alter this process, go to application/controllers/Bookfeed.php ("loa
 
 ## Check on receipt:
 
-https://your/URL/index.php/Bookfeed/autoUpdateReceived/go
+`https://your/URL/index.php/Bookfeed/autoUpdateReceived/go`
 
 This will tell the application to check in on any order items that are marked not received (so long as they were ordered after your cutoff date, "statute of limitations"). If it has been received, it will be so marked and the application will try to load/refresh any copy-level data from OCLC. 
 
@@ -132,7 +132,7 @@ To view and alter this process, go to application/controllers/Bookfeed.php ("aut
 
 ## Check on cataloging:
 
-https://your/URL/index.php/Bookfeed/autoUpdateCopies/go
+`https://your/URL/index.php/Bookfeed/autoUpdateCopies/go`
 
 This will tell the application to check in on any received items that have incomplete copy info associated (by default it just checks for a missing call number). The copy data in the application database will be erased & replaced with the latest copy data from OCLC.
 
@@ -142,33 +142,33 @@ This will tell the application to check in on any received items that have incom
 
 The URL of the front-facing main menu will be:
 
-https://your/URL/index.php/Bookview
+`https://your/URL/index.php/Bookview`
 
 You can also create deep links to go automatically to a filtered list of new books (like for embedding in a LibGuide). Green highlight used to make the pattern clearer.
 
 The below command gives you a list filtered by Fund irregardless of how long ago it was ordered (that could be a lot of books!):
 
-https://your/URL/index.php/Bookview/viewF/fundCodeHere
+`https://your/URL/index.php/Bookview/viewF/fundCodeHere`
 
-	*Example: **[https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAME*B](https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB)* ** *
+	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAME*B](https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB)_
 
 The below command gives you a list filtered by Fund and Age:
 
-https://your/URL/index.php/Bookview/viewFA/fundCodeHere/ageGoesHere
+`https://your/URL/index.php/Bookview/viewFA/fundCodeHere/ageGoesHere`
 
-	*Example: **[https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6*M](https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M)*    *
+	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6*M](https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M)_
 
 *(Your options for age are currently 1M, 3M, 6M, 1Y, 2Y)*
 
 It is anticipated that this application will be typically presented inside an iFrame on another page (like a libguide or on a library’s website) rather than a standalone page. To that end, rather than making the layout responsive to screen size, mobile vs full view is determined in the URL you use to call the application. To use the mobile Sizing:
 
-https://your/URL/index.php/Bookview/viewFS/fundCodeHere/m
+`https://your/URL/index.php/Bookview/viewFS/fundCodeHere/m`
 
-	*Example: **[https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB*/](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m)[m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m) 
+	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB*/](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m)[m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m) _
 
-https://your/URL/index.php/Bookview/viewFAS/fundCodeHere/ageGoesHere/m
+`https://your/URL/index.php/Bookview/viewFAS/fundCodeHere/ageGoesHere/m`
 
-*Example: **[https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/*m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m)* *
+_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/*m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m)_
 
 # Appendix: Code architecture
 
@@ -196,63 +196,63 @@ Other useful file locations to know about:
 
 # Appendix: MySQL setup code
 
-CREATE TABLE `copy` (
+```CREATE TABLE 'copy' (
 
-                  `id` int(10) NOT NULL AUTO_INCREMENT,
+                  'id' int(10) NOT NULL AUTO_INCREMENT,
 
-                  `callNum` varchar(40) NOT NULL,
+                  'callNum' varchar(40) NOT NULL,
 
-                  `ocn` int(15) NOT NULL,
+                  'ocn' int(15) NOT NULL,
 
-                  `branch` varchar(7) NOT NULL,
+                  'branch' varchar(7) NOT NULL,
 
-                  `location` varchar(40) NOT NULL,
+                  'location' varchar(40) NOT NULL,
 
-                  `dateLoaded` date NOT NULL,
+                  'dateLoaded' date NOT NULL,
 
-                  `barcode` varchar(16) NOT NULL,
+                  'barcode' varchar(16) NOT NULL,
 
-                  PRIMARY KEY (`id`)
+                  PRIMARY KEY ('id')
 
 ) ENGINE=MyISAM AUTO_INCREMENT=25914 DEFAULT CHARSET=latin1;
 
-CREATE TABLE `item` (
+CREATE TABLE 'item' (
 
-                  `orderItemNum` varchar(15) NOT NULL,
+                  'orderItemNum' varchar(15) NOT NULL,
 
-                  `orderNum` varchar(30) NOT NULL,
+                  'orderNum' varchar(30) NOT NULL,
 
-                  `orderStat` varchar(15) NOT NULL,
+                  'orderStat' varchar(15) NOT NULL,
 
-                  `receiptStat` varchar(15) NOT NULL,
+                  'receiptStat' varchar(15) NOT NULL,
 
-                  `fund` varchar(40) NOT NULL,
+                  'fund' varchar(40) NOT NULL,
 
-                  `receiptDate` date NOT NULL,
+                  'receiptDate' date NOT NULL,
 
-                  `orderDate` date NOT NULL,
+                  'orderDate' date NOT NULL,
 
-                  `matType` varchar(15) NOT NULL,
+                  'matType' varchar(15) NOT NULL,
 
-                  `title` varchar(130) NOT NULL,
+                  'title' varchar(130) NOT NULL,
 
-                  `person1` varchar(40) NOT NULL,
+                  'person1' varchar(40) NOT NULL,
 
-                  `isbn` varchar(14) NOT NULL,
+                  'isbn' varchar(14) NOT NULL,
 
-                  `coverURL` varchar(200) NOT NULL,
+                  'coverURL' varchar(200) NOT NULL,
 
-                  `ocn` int(15) NOT NULL,
+                  'ocn' int(15) NOT NULL,
 
-                  PRIMARY KEY (`orderItemNum`)
+                  PRIMARY KEY ('orderItemNum')
 
 ) ENGINE=MyISAM AUTO_INCREMENT=5583 DEFAULT CHARSET=latin1;
 
-CREATE TABLE `order` (
+CREATE TABLE 'order' (
 
-                  `orderNum` varchar(20) NOT NULL,
+                  'orderNum' varchar(20) NOT NULL,
 
-                  PRIMARY KEY (`orderNum`)
+                  PRIMARY KEY ('orderNum')
 
-) ENGINE=MyISAM AUTO_INCREMENT=639 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=639 DEFAULT CHARSET=latin1;```
 

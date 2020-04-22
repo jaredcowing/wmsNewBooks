@@ -100,7 +100,7 @@ $doneFlag=true; }
 
 Then change itemsPerPage in the below line to reflect the number of orders you want to load in each "gulp" of order data, and startIndex to the number where you left off last time you loaded orders:
 
-`$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=**0**&itemsPerPage=**100**";`
+`$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=0&itemsPerPage=100";`
 
 3. Now you’re ready to run the order command. Enter this URL: https://your/URL/index.php/Bookfeed/load/orders
 
@@ -152,13 +152,13 @@ The below command gives you a list filtered by Fund irregardless of how long ago
 
 `https://your/URL/index.php/Bookview/viewF/fundCodeHere`
 
-	* Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB](https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB) *
+*Example:* `https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB`
 
 The below command gives you a list filtered by Fund and Age:
 
 `https://your/URL/index.php/Bookview/viewFA/fundCodeHere/ageGoesHere`
 
-	* Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M](https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M) *
+*Example:* `https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M`
 
 *(Your options for age are currently 1M, 3M, 6M, 1Y, 2Y)*
 
@@ -166,11 +166,11 @@ It is anticipated that this application will be typically presented inside an iF
 
 `https://your/URL/index.php/Bookview/viewFS/fundCodeHere/m`
 
-	* Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m)[m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m) *
+*Example:* `https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/`
 
 `https://your/URL/index.php/Bookview/viewFAS/fundCodeHere/ageGoesHere/m`
 
-* Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m) *
+*Example:* `https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m`
 
 # Appendix: Code architecture
 

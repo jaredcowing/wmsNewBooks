@@ -90,9 +90,11 @@ The application is controlled by URL commands; you navigate to a URL containing 
 
     5. Find these lines in the load function and comment/uncomment such that it reads :
 
-```else{ //startIndex +=100;
+```
+else{ //startIndex +=100;
 
-$doneFlag=true; }```
+$doneFlag=true; }
+```
 
 (This prevents the application from automatically getting more orders once it’s digested its first "gulp").
 

@@ -94,4 +94,12 @@ class NewBooksConfig {
 			return 3;
 		}
 		
+		/* Set the username and password to authenticate before executing any data loading commands. */
+		public function getUNPW(){
+			return array(
+				'UN'=>'test',
+				'PW'=>'test123'
+			);
+		}
+		
 }

@@ -152,13 +152,13 @@ The below command gives you a list filtered by Fund irregardless of how long ago
 
 `https://your/URL/index.php/Bookview/viewF/fundCodeHere`
 
-	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAME*B](https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB)_
+	_ _Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAME*B](https://jaredcowing.com/newBooks/index.php/Bookview/viewF/GAMEB) _ _
 
 The below command gives you a list filtered by Fund and Age:
 
 `https://your/URL/index.php/Bookview/viewFA/fundCodeHere/ageGoesHere`
 
-	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6*M](https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M)_
+	_ _Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6*M](https://jaredcowing.com/newBooks/index.php/Bookview/viewFA/GAMEB/6M) _ _
 
 *(Your options for age are currently 1M, 3M, 6M, 1Y, 2Y)*
 
@@ -166,11 +166,11 @@ It is anticipated that this application will be typically presented inside an iF
 
 `https://your/URL/index.php/Bookview/viewFS/fundCodeHere/m`
 
-	_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB*/](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m)[m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m) _
+	_ _Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB*/](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m)[m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFS/GAMEB/m) _ _
 
 `https://your/URL/index.php/Bookview/viewFAS/fundCodeHere/ageGoesHere/m`
 
-_Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/*m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m)_
+_ _Example: [https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/*m](https://jaredcowing.com/newBooks/index.php/Bookview/viewFAS/GAMEB/6M/m) _ _
 
 # Appendix: Code architecture
 

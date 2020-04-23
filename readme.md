@@ -8,8 +8,6 @@ To install a version to test with at your own library, you will need the followi
 
 * A web server to which you can upload HTML pages, PHP scripts, etc.
 
-    * This web server should also include a MySQL database that you can use to store the data.
-
 * A WSKey from OCLC that has access to:
 
     * Acquisitions API (WMS_ACQ)
@@ -23,6 +21,8 @@ To install a version to test with at your own library, you will need the followi
     * COLLECTION_MANAGEMENT_USER
 
     * *(This type of access will be changing per OCLC, but for now it will work, I’ll update notes to reflect new API access method once that time comes)*
+	 
+* _(Optional)_ A MySQL database to store data if you'd like to use advanced database features, but the default storage is now a simple SQLite file which comes preformatted when you install. See the SQL code in the appendix that you can use to create the schema (the structure) of the database. The schema is explained in the presentation slides linked above.
 
 * _(Optional)_ A [Google Books API key](https://cloud.google.com/docs/authentication/api-keys?visit_id=637155151722963656-1968642627&rd=1)
 
@@ -32,79 +32,51 @@ To install a version to test with at your own library, you will need the followi
 
 # Installation steps
 
-1. In MySQL, create a new database with a name of your choosing.
+1. Go to the [repository on Github](https://github.com/jaredcowing/wmsNewBooks), and choose clone/download -> download ZIP
 
-2. See the SQL code in the appendix that you can use to create the schema (the structure) of the database. The schema is explained in the presentation slides linked above.
+2. Rename the wmsNewBooks folder to whatever name you’d like to choose (this will become part of the URL path for your installation, eg mylibrary.edu/nameThatIChose )
 
-Your MySQL database should now be ready to receive book data! Now it’s time to set up the application itself:
+3. Upload the renamed folder to your webserver
 
-3. Go to the [repository on Github](https://github.com/jaredcowing/wmsNewBooks), and choose clone/download -> download ZIP
+4. Go to application/config/databaseRENAME.php (this is where CodeIgniter framework will get its core database settings)
 
-4. Rename the wmsNewBooks folder to whatever name you’d like to choose (this will become part of the URL path for your installation, eg mylibrary.edu/nameThatIChose )
+    1. Rename file to database.php
+	 
+	 	_* The default database configuration uses SQLite which stores data in a simple file in the db folder. If you'd like to stick with SQLite, you can simply proceed to step 5. If you'd like to use MySQL instead, use the databaseMYSQL.php file instead and rename it to database.php, then set the following variables:_
 
-5. Upload the renamed folder to your webserver
+    	_* `username` = the username of a user authorized to create/read/update/delete (CRUD) in your database_
 
-6. Go to application/config/databaseRENAME.php (this is where CodeIgniter framework will get its core database settings)
+    	_* `password` = that user’s password_
 
-    1. Rename file to database.php (this file will contain sensitive information, so if you make this a repo make sure to ignore this file). Set the following variables:
+    	_* `database` = name of the db created in MySQL_
 
-    2. `username` = the username of a user authorized to create/read/update/delete (CRUD) in your database
+5. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
 
-    3. `password` = that user’s password
+    * `$config['base_url'] = '[https://yoururl/path](https://yoururl/path/)';` *(no slash at end)*
 
-    4. `database` = name of the db created in MySQL
+    * `$config['sess_driver'] = 'files'`;
 
-7. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
+    * You may keep session data set to ‘database’ like I do (sessions are stored in a MySQL database), but if you do then a little [extra setup may be required](https://codeigniter.com/user_guide/libraries/sessions.html#session-drivers). Storing session data in files is the simplest option.
 
-    5. `$config['base_url'] = '[https://yoururl/path](https://yoururl/path/)';` *(no slash at end)*
+6. Open newbooks.js and set `var baseURL="[https://yoururl/path](https://yoururl/path)";` *(no slash at end)*
 
-    6. `$config['sess_driver'] = 'files'`;
+7. **Finally, the library-specific customizations:** Go to application/libraries/newBooksConfigRENAME.php (this is where application-specific settings are to help you customize to your library)
 
-    7. You may keep session data set to ‘database’ like I do (sessions are stored in a MySQL database), but if you do then a little [extra setup is required](https://codeigniter.com/user_guide/libraries/sessions.html#session-drivers). Storing session data in files is the simplest option.
+    * Rename file to newBooksConfig.php (this file will contain sensitive information, so if you make this a repo make sure to ignore this file).
 
-8. Open newbooks.js and set `var baseURL="[https://yoururl/path](https://yoururl/path)";` *(no slash at end)*
-
-9. **Finally, the library-specific customizations:** Go to application/libraries/newBooksConfigRENAME.php (this is where application-specific settings are to help you customize to your library)
-
-    8. Rename file to newBooksConfig.php (this file will contain sensitive information, so if you make this a repo make sure to ignore this file).
-
-    9. Comments in the file will explain what you can configure. Settings include your API access keys, website & catalog URLs, fund codes, and how you’d like to determine the "arrival" date of an item.
+    * Comments in the file will explain what you can configure. Settings include your API access keys, website & catalog URLs, fund codes, and how you’d like to determine the "arrival" date of an item.
 
 # Running application for the first time
 
-The application is controlled by URL commands; you navigate to a URL containing a command using a web browser to execute. The first command you should run is one to load all submitted orders; the same command will trigger an auto-loading of all items contained in those orders. This could be a lot of items, perhaps tens of thousands! My strong suggestion is to ingest this data in small, successive "gulps" rather than a tsunami so that you can easily stop if/when something goes wrong. There are two ways to do this:
+The application is controlled by URL commands; you navigate to a URL containing a command using a web browser to execute. The [next session](# Back-end commands available in the application) details those commands, but you can alternatively go to a dashboard page which contains links to each of the commands (so all you need to do is point and click).
 
-1. Make "statute of limitations" a date within the past couple months, so that only the very most recent items are loaded. To do this:
+1. Go to this page to enter your login that was set in your configuration/preferences: `https://your/URL/index.php/Login/login`
 
-    1. Go to application/libraries/newBooksConfig.php
+2. After login, you'll be presented with the dashboard page. The first thing you'll want to do is load order data from OCLC so that your application has some books that patrons can look up. While there is a way to load all your latest order info at once, I suggest you load a few at a time first just in case there are errors to address. There's a suggested command near the top of that page you can execute which only loads 100 orders at a time.
 
-    2. Find the method getStatute()
+3. Once you feel comfortable that things are loading OK, you're welcome to use the command on the dashboard that loads all outstanding order data.
 
-    3. Change the date to something within the past month or two (YYYY-MM-DD) just to start
-
-        1. (You can always come back and move this date further back once you’re ready to load more books).
-
-2. Manually restrict how many orders are loaded at a time, then run the load command repeatedly ("load 20 orders, OK that went fine so load another 20, OK now another 20…"). To do this:
-
-    4. Open application/controllers/bookFeed.php
-
-    5. Find these lines in the load function and comment/uncomment such that it reads :
-
-```
-else{ //startIndex +=100;
-
-$doneFlag=true; }
-```
-
-(This prevents the application from automatically getting more orders once it’s digested its first "gulp").
-
-Then change itemsPerPage in the below line to reflect the number of orders you want to load in each "gulp" of order data, and startIndex to the number where you left off last time you loaded orders:
-
-`$resourceURLp2="/purchaseorders?q=SUBMITTED&startIndex=0&itemsPerPage=100";`
-
-3. Now you’re ready to run the order command. Enter this URL: https://your/URL/index.php/Bookfeed/load/orders
-
-4. It is quite possible you’ll run into errors (every library is different, perhaps there’s a circumstance I didn’t account for in the code). Don’t worry, this application can only read OCLC data, so none of your master WMS data is at risk of being altered or corrupted. The only thing that might get corrupted is your local MySQL order data stored by this application, so worst-case scenario you have to clean corrupted data manually in a graphic editor (such as myPHPadmin ) or just empty the tables and start over. Any PHP errors should display on your screen, which you are welcome to send to me (or perhaps you are able to figure out a fix on your own which I’d love to know about).
+4. As mentioned before, it is quite possible you’ll run into errors (every library is different, perhaps there’s a circumstance I didn’t account for in the code). Don’t worry, this application can only read OCLC data, so none of your master WMS data is at risk of being altered or corrupted. The only thing that might get corrupted is your local data stored by this application, so worst-case scenario you have to empty your database and start over. Any PHP errors should display on your screen, which you are welcome to send to me (or perhaps you are able to figure out a fix on your own which I’d love to know about).
 
 # Back-end commands available in the application
 
@@ -198,7 +170,8 @@ Other useful file locations to know about:
 
 # Appendix: MySQL setup code
 
-```CREATE TABLE 'copy' (
+```
+CREATE TABLE 'copy' (
 
                   'id' int(10) NOT NULL AUTO_INCREMENT,
 
@@ -216,7 +189,7 @@ Other useful file locations to know about:
 
                   PRIMARY KEY ('id')
 
-) ENGINE=MyISAM AUTO_INCREMENT=25914 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE 'item' (
 
@@ -248,7 +221,7 @@ CREATE TABLE 'item' (
 
                   PRIMARY KEY ('orderItemNum')
 
-) ENGINE=MyISAM AUTO_INCREMENT=5583 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE 'order' (
 
@@ -256,5 +229,5 @@ CREATE TABLE 'order' (
 
                   PRIMARY KEY ('orderNum')
 
-) ENGINE=MyISAM AUTO_INCREMENT=639 DEFAULT CHARSET=latin1;```
-
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+```

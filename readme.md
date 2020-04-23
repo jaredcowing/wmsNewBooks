@@ -42,13 +42,15 @@ To install a version to test with at your own library, you will need the followi
 
     1. Rename file to database.php
 	 
-	 	_* The default database configuration uses SQLite which stores data in a simple file in the db folder. If you'd like to stick with SQLite, you can simply proceed to step 5. If you'd like to use MySQL instead, use the databaseMYSQL.php file instead and rename it to database.php, then set the following variables:_
+	 	_* The default database configuration uses SQLite which stores data in a simple file in the db folder. If you'd like to stick with SQLite, you can simply proceed to step 5. If you'd like to use MySQL instead, then you'll need to create a database using [the schema in the appendix](#appendix:-MySQL-setup-code) and then set the following variables:_
 
     	_* `username` = the username of a user authorized to create/read/update/delete (CRUD) in your database_
 
     	_* `password` = that user’s password_
 
     	_* `database` = name of the db created in MySQL_
+	
+	_* `dbdriver` = mysqli_
 
 5. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
 

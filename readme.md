@@ -68,7 +68,7 @@ To install a version to test with at your own library, you will need the followi
 
 # Running application for the first time
 
-The application is controlled by URL commands; you navigate to a URL containing a command using a web browser to execute. The [next session](# Back-end commands available in the application) details those commands, but you can alternatively go to a dashboard page which contains links to each of the commands (so all you need to do is point and click).
+The application is controlled by URL commands; you navigate to a URL containing a command using a web browser to execute. The [next section](#back-end-commands-available-in-the-application) details those commands, but you can alternatively go to a dashboard page which contains links to each of the commands (so all you need to do is point and click).
 
 1. Go to this page to enter your login that was set in your configuration/preferences: `https://your/URL/index.php/Login/login`
 
@@ -80,7 +80,7 @@ The application is controlled by URL commands; you navigate to a URL containing 
 
 # Back-end commands available in the application
 
-When executing any of the below commands, a raw-text feed of status messages will be printed to your screen (along with any errors).
+When executing any of the below commands, a raw-text feed of status messages will be printed to your screen (along with any errors). You can execute the commands using the tips below, or by logging in and going to the command dashboard: `https://your/URL/index.php/Login/login`
 
 ## Loading new orders, copies & items:
 
@@ -170,6 +170,7 @@ Other useful file locations to know about:
 
 # Appendix: MySQL setup code
 
+If you so desire to use MySQL instead of SQLite, the below code may help you set up your schema before loading data from OCLC.
 ```
 CREATE TABLE 'copy' (
 

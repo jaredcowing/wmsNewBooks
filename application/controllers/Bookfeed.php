@@ -19,12 +19,11 @@ class Bookfeed extends CI_Controller {
 	}
 	
 	public function dash(){
-		$baseURL=$this->newbooksconfig->getBaseURL();
+		$baseURL['baseURL']=$this->newbooksconfig->getBaseURL();
 		$userok=$this->session->all_userdata();
 		if(array_key_exists('ok', $userok)) {
 			if($userok['ok']=='yes'){
 				$brandData=$this->newbooksconfig->getScriptBrandingURLs();
-				$baseURL['baseURL']=$this->newbooksconfig->getBaseURL();
 				$this->load->view('templates/header',$brandData);
 				$this->load->view('templates/backmenu',$baseURL);
 				$this->load->view('templates/footer');
@@ -129,7 +128,7 @@ class Bookfeed extends CI_Controller {
 					$dataP2=$dataP->entry;
 					var_dump($dataP2);
 				}
-				echo "<p><a href='".$baseURL."/index.php/Bookfeed/dash'>Return to dashboard</a></p>");
+				echo "<p><a href='".$baseURL."/index.php/Bookfeed/dash'>Return to dashboard</a></p>";
 			}
 			else{	//Userok 'ok' exists but invalid
 				header("Location: ".$baseURL."/index.php/Login/login");

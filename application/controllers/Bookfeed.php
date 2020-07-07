@@ -18,6 +18,26 @@ class Bookfeed extends CI_Controller {
 		$this->load->view('footer');
 	}
 	
+	public function dash(){
+		$baseURL=$this->newbooksconfig->getBaseURL();
+		$userok=$this->session->all_userdata();
+		if(array_key_exists('ok', $userok)) {
+			if($userok['ok']=='yes'){
+				$brandData=$this->newbooksconfig->getScriptBrandingURLs();
+				$baseURL['baseURL']=$this->newbooksconfig->getBaseURL();
+				$this->load->view('templates/header',$brandData);
+				$this->load->view('templates/backmenu',$baseURL);
+				$this->load->view('templates/footer');
+			}
+			else{	//Userok 'ok' exists but invalid
+				header("Location: ".$baseURL."/index.php/Login/login");
+			}
+		}
+		else{		//Index does not exist in userok
+			header("Location: ".$baseURL."/index.php/Login/login");
+		}
+	}
+	
 	public function load($target){
 	/*Load function will request & ingest data from OCLC
 	orders=load new orders & trigger functions to populate any copies/items therein
@@ -109,6 +129,7 @@ class Bookfeed extends CI_Controller {
 					$dataP2=$dataP->entry;
 					var_dump($dataP2);
 				}
+				echo "<p><a href='".$baseURL."/index.php/Bookfeed/dash'>Return to dashboard</a></p>");
 			}
 			else{	//Userok 'ok' exists but invalid
 				header("Location: ".$baseURL."/index.php/Login/login");

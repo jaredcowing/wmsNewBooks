@@ -32,17 +32,15 @@ To install a version to test with at your own library, you will need the followi
 
 # Installation steps
 
-1. Go to the [repository on Github](https://github.com/jaredcowing/wmsNewBooks), and choose clone/download -> download ZIP
+1. Go to the [repository on Github](https://github.com/jaredcowing/wmsNewBooks), and click "code" button -> download ZIP
 
-2. Rename the wmsNewBooks folder to whatever name you’d like to choose (this will become part of the URL path for your installation, eg mylibrary.edu/nameThatIChose )
+2. Extract and rename the wmsNewBooks folder to whatever name you’d like to choose (this will become part of the URL path for your installation, eg mylibrary.edu/nameThatIChose )
 
-3. Upload the renamed folder to your webserver
-
-4. Go to application/config/databaseRENAME.php (this is where CodeIgniter framework will get its core database settings)
+3. Go to application/config/databaseRENAME.php (this is where CodeIgniter framework will get its core database settings)
 
     1. Rename file to database.php
 	 
-        _* The default database configuration uses SQLite which stores data in a simple file in the db folder. If you'd like to stick with SQLite, you can simply proceed to step 5. If you'd like to use MySQL instead, then you'll need to create a database using [the schema in the appendix](#appendix-mysql-setup-code) and then set the following variables:_
+        _* The default database configuration uses SQLite which stores data in a simple file in the db folder. If you'd like to stick with SQLite, you can simply proceed to step 4. If you'd like to use MySQL instead, then you'll need to create a database using [the schema in the appendix](#appendix-mysql-setup-code) and then set the following variables:_
 
         _* `username` = the username of a user authorized to create/read/update/delete (CRUD) in your database_
 
@@ -52,21 +50,23 @@ To install a version to test with at your own library, you will need the followi
 	
         _* `dbdriver` = mysqli_
 
-5. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
+4. Go to application/config/config.php (this is where CodeIgniter framework keeps its core configuration settings)
 
-    * `$config['base_url'] = '[https://yoururl/path](https://yoururl/path/)';` *(no slash at end)*
+    * `$config['base_url'] = 'https://yoururl/path';` *(no slash at end)*
 
     * `$config['sess_driver'] = 'files'`;
 
     * You may keep session data set to ‘database’ like I do (sessions are stored in a MySQL database), but if you do then a little [extra setup may be required](https://codeigniter.com/user_guide/libraries/sessions.html#session-drivers). Storing session data in files is the simplest option.
 
-6. Open newbooks.js and set `var baseURL="[https://yoururl/path](https://yoururl/path)";` *(no slash at end)*
+5. In root folder, open newbooks.js and in second line set `var baseURL="https://yoururl/path";` *(no slash at end)*
 
-7. **Finally, the library-specific customizations:** Go to application/libraries/newBooksConfigRENAME.php (this is where application-specific settings are to help you customize to your library)
+6. **Finally, the library-specific customizations:** Go to application/libraries/newBooksConfigRENAME.php (this is where application-specific settings are to help you customize to your library)
 
-    * Rename file to newBooksConfig.php (this file will contain sensitive information, so if you make this a repo make sure to ignore this file).
+    * Rename file to newBooksConfig.php (this file will contain sensitive information, so if you make this into a repo make sure to ignore this file).
 
     * Comments in the file will explain what you can configure. Settings include your API access keys, website & catalog URLs, fund codes, and how you’d like to determine the "arrival" date of an item.
+
+7. Upload your renamed folder containing these files to your webserver.
 
 # Running application for the first time
 

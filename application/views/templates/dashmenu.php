@@ -2,6 +2,7 @@
 <div class='dash'>
 <p>Login accepted. Please enter the desired command as a URL, or click one of the below options.</p>
 <p>First time running this program? Try loading 100 orders at a time to see how it goes before trying to load everything at once: <br/><a href='<?php echo $baseURL."/index.php/Bookfeed/load/orders/TRUE/0"?>'>Load first 100 orders</a></p>
+<p>Here's a link for reference to <a href='<?php echo $baseURL."/index.php/Bookview"?>'>the public side of your new feed.</a></p>
 <h2>Routine maintenance commands</h2>
 <p>Step 1. <a href=<?php echo $baseURL."/index.php/Bookfeed/load/orders"?>>Load all new orders</a><i> (finds any orders not yet in this tool's db, loads them if they were placed after cutoff date in preferences, will try to load copy info too if any yet available)</i></p>
 <p>Step 2. <a href=<?php echo $baseURL."/index.php/Bookfeed/updateReceived/default"?>>Update received status for loaded orders</a> <i>(looks for "unreceived" items, checks to see if they were received, if so then updates receipt status and copy-level info)</i></p>

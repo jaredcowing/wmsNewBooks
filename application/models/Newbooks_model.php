@@ -122,7 +122,8 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
-		public function loadBranchE(){
+	/* Return all copies with no branch or call number information (a way of defining "in processing") */
+	public function loadBranchE(){
 		$data=$this->db->query("SELECT * FROM copy WHERE (branch = '' OR callNum = '');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
@@ -140,6 +141,7 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
+	/* If library denotes in-processing using the call number, this query can return those items. */
 	public function loadCallProc(){
 		$data=$this->db->query("SELECT * FROM copy WHERE (callNum = 'in processing' OR callNum = 'processing' OR callNum = 'in process');");
 		$resultsArr=array();
@@ -158,6 +160,7 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
+	/* Return all items that have not yet been received as defined herein */
 	public function loadExpecting($date){
 		$data=$this->db->query("SELECT * FROM item WHERE orderStat!='CANCELLED' AND (receiptStat = 'NOT_RECEIVED' OR receiptStat = 'NOT_RECEIV' OR receiptStat = '') AND orderDate >= '".$date."';");
 		$resultsArr=array();
@@ -170,6 +173,7 @@ class Newbooks_model extends CI_Model{
 		return $resultsArr;
 	}
 	
+	/* Return all items that have no associated copy in local db; this should be rare since receiving generally produces a copy, even if an incomplete one */
 	public function loadExpecting2($date){
 		$data2=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
 		$resultsArr=array();

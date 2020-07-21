@@ -25,5 +25,5 @@ body{font-family:calibri;background-color:rgb(50,50,50);color:white;}
 .pag a:visited{color:yellow;}
 .pagCur {color:silver;font-style:italic;font-size:20pt;}
 
-.dash a{color:white;}
-.dash a:visited{color:yellow;}
+.dash a{color:yellow;}
+.dash a:visited{color:orange;}

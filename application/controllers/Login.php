@@ -40,8 +40,9 @@ class Login extends CI_Controller {
 			$brandData=$this->newbooksconfig->getScriptBrandingURLs();
 			$baseURL['baseURL']=$this->newbooksconfig->getBaseURL();
 			$this->load->view('templates/header',$brandData);
-			$this->load->view('templates/backmenu',$baseURL);
+			$this->load->view('templates/authSuccess',$baseURL);
 			$this->load->view('templates/footer');
+			//header("Location: ".$baseURL['baseURL']."/index.php/Bookfeed/dash");
 		}
 		else{
 			echo "You have entered invalid login credentials or been timed out. Please hit your browser's back button and try again.";

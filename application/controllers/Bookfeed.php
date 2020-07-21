@@ -25,15 +25,15 @@ class Bookfeed extends CI_Controller {
 			if($userok['ok']=='yes'){
 				$brandData=$this->newbooksconfig->getScriptBrandingURLs();
 				$this->load->view('templates/header',$brandData);
-				$this->load->view('templates/backmenu',$baseURL);
+				$this->load->view('templates/dashmenu',$baseURL);
 				$this->load->view('templates/footer');
 			}
 			else{	//Userok 'ok' exists but invalid
-				header("Location: ".$baseURL."/index.php/Login/login");
+				header("Location: ".$baseURL['baseURL']."/index.php/Login/login");
 			}
 		}
 		else{		//Index does not exist in userok
-			header("Location: ".$baseURL."/index.php/Login/login");
+			header("Location: ".$baseURL['baseURL']."/index.php/Login/login");
 		}
 	}
 	
@@ -250,7 +250,8 @@ class Bookfeed extends CI_Controller {
 		}
 	}
 	
-	public function autoLoadCopies($ocn){										//Could be called from URL but generally this function will only be accessed internally from load order function
+	/* Could be called from URL but generally this function will only be called internally during course of load order function */
+	public function autoLoadCopies($ocn){
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		$userok=$this->session->all_userdata();
 		if(array_key_exists('ok', $userok)) {
@@ -321,13 +322,13 @@ class Bookfeed extends CI_Controller {
 	This function is intended to be called manually via URL. It will check on unreceived items and, if cancelled or received, update status accordingly.
 	Items found to be received since last check will have copy info retrieved or updated.
 	*/
-	public function autoUpdateReceived($ph){								//If there are items marked received with no copy attached (rare), enter parameter 'awaitingcopy'
+	public function updateReceived($mode){								//If there are items marked received with no copy attached (rare), enter parameter 'awaitingcopy'
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		$userok=$this->session->all_userdata();
 		if(array_key_exists('ok', $userok)) {
 			if($userok['ok']=='yes'){
 				$statuteLimitations=$this->newbooksconfig->getStatute();			//Checks in on not received items ordered after date set in config file
-				if($ph=='awaitingcopy'){
+				if($mode=='awaitingcopy'){
 					$list=$this->Newbooks_model->loadExpecting2($statuteLimitations);
 				}
 				else{
@@ -371,6 +372,7 @@ class Bookfeed extends CI_Controller {
 						}
 					}
 				}
+				echo "<p>Update complete! <a href='".$baseURL."/index.php/Bookfeed/dash'>Return to dashboard</a></p>";
 			}
 			else{	//Userok 'ok' exists but invalid
 				header("Location: ".$baseURL."/index.php/Login/login");
@@ -383,7 +385,7 @@ class Bookfeed extends CI_Controller {
 	
 	/*
 	This function is for testing. It simply lists all items in local db with a) no call number, or b) "in processing" as call number to update.
-	Use it for when you'd like to see which items would be affected by the autoUpdateCopies method.
+	Use it for when you'd like to see which items would be affected by the updateCopies method.
 	*/
 	public function testBranchE($ph){
 		$baseURL=$this->newbooksconfig->getBaseURL();
@@ -407,13 +409,13 @@ class Bookfeed extends CI_Controller {
 	(or alternatively, have 'in processing' as the call number). Any such copies will be updated/replaced with refreshed copy
 	data from OCLC (Collection Management API).
 	*/
-	public function autoUpdateCopies($ph){	
+	public function updateCopies($mode){	
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		$userok=$this->session->all_userdata();
 		if(array_key_exists('ok', $userok)) {
 			if($userok['ok']=='yes'){
-				$statuteLimitations=$this->newbooksconfig->getStatute();			//Can also use this function to alternatively handle "in-processing" call numbers if placeholder $ph so specifies
-				if($ph=='processing'){
+				$statuteLimitations=$this->newbooksconfig->getStatute();			//Can also use this function to alternatively handle "in-processing" call numbers if placeholder $mode so specifies
+				if($mode=='processing'){
 					$list=$this->Newbooks_model->loadCallProc();
 				}
 				else{
@@ -480,6 +482,7 @@ class Bookfeed extends CI_Controller {
 						$this->autoLoadCopies($ocnNew);
 					}
 				}
+				echo "<p>Update complete! <a href='".$baseURL."/index.php/Bookfeed/dash'>Return to dashboard</a></p>";
 			}
 			else{	//Userok 'ok' exists but invalid
 				header("Location: ".$baseURL."/index.php/Login/login");

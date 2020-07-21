@@ -70,7 +70,7 @@ class NewBooksConfig {
 				'PHILB'=>'Philosophy',
 				'POLIB'=>'Political Science',
 				'POPUB'=>'Popular/Leisure (Burbank)',
-				'POPUSB'=>'Popular/Leisure (San Diego)',
+				'POPUSD'=>'Popular/Leisure (San Diego)',
 				'PSADB'=>'Public Safety Administration',
 				'PSYCB'=>'Psychology',
 				'SCMAB'=>'Science & Math',
@@ -82,7 +82,7 @@ class NewBooksConfig {
 		1) using the WMS Acquisitions order date (and adding some padding time for shippping & processing)
 		2) using the date the application first noticed an item record was created.
 		Note: Don't start using option #2 until after your application has been running for a few months;
-		the first time you load orders, all items received by that time will get 'dateAppear' set to that day (old items will appear to be new).
+		the first time you load orders, all items will be marked within this application as "received" on that day (so old items will appear to be new).
 		*/
 		public function getAgeDeterminant(){																
 			return 'order';		//For option #1 described above, set this string to 'order'; for option #2, set to 'receipt'.

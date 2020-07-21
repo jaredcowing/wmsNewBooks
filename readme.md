@@ -98,17 +98,17 @@ To view and alter this process, go to application/controllers/Bookfeed.php ("loa
 
 ## Check on receipt:
 
-`https://your/URL/index.php/Bookfeed/autoUpdateReceived/go`
+`https://your/URL/index.php/Bookfeed/updateReceived/default`
 
 This will tell the application to check in on any order items that are marked not received (so long as they were ordered after your cutoff date, "statute of limitations"). If it has been received, it will be so marked and the application will try to load/refresh any copy-level data from OCLC. 
 
 If the item has been cancelled, it will be so recorded and the application will no longer try to load its information.
 
-To view and alter this process, go to application/controllers/Bookfeed.php ("autoUpdateReceived" function/method)
+To view and alter this process, go to application/controllers/Bookfeed.php ("updateReceived" function/method)
 
 ## Check on cataloging:
 
-`https://your/URL/index.php/Bookfeed/autoUpdateCopies/go`
+`https://your/URL/index.php/Bookfeed/updateCopies/blankCN`
 
 This will tell the application to check in on any received items that have incomplete copy info associated (by default it just checks for a missing call number). The copy data in the application database will be erased & replaced with the latest copy data from OCLC.
 

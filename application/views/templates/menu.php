@@ -2,10 +2,10 @@
 <br />
 <select id='subjectChooser'>
 	<!--<option value='all'>All subjects</option>-->
-	<!--<optgroup label='Format'>
+	<optgroup label='Format'>
 	<option value='SFormat_books' <?php if($fund=='SFORMAT_books'){echo "selected";}?>>books</option>
 	<option value='SFormat_videos' <?php if($fund=='SFORMAT_videos'){echo "selected";}?>>videos</option>
-	</optgroup>-->
+	</optgroup>
 	<optgroup label='Subject'>
 	<?php
 		foreach($subjDict as $fundCode=>$fundName){

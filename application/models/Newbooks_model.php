@@ -257,9 +257,7 @@ class Newbooks_model extends CI_Model{
 					default:
 						$sqlstring="matType='BOOK'";
 				}
-				if($ageDeterminant=='order'){
-					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
-				}
+				$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND receiptStat = 'RECEIVED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
 			}
 		}
 		else{

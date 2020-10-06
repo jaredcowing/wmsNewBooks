@@ -56,6 +56,9 @@ class Newbooks_model extends CI_Model{
 			if($receiptStat=='RECEIVED'){
 				$newRow['receiptDate']=date('Y-m-d');
 			}
+			else{
+				$newRow['receiptDate']="0000-00-00";
+			}
 			$newRow['orderDate']=$orderDate;
 			$newRow['coverURL']=$coverURL;
 			$this->db->insert('item',$newRow);

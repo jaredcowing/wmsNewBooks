@@ -153,25 +153,25 @@ class Bookfeed extends CI_Controller {
 				$newAdds=array();
 				foreach($dataP2 as $orderItem){
 					$orderItemNum=$orderItem->orderItemNumber;
-					if(count($orderItem->resource->worldcatResource->title)>0){
+					if(!empty($orderItem->resource->worldcatResource->title)){
 						$title=$orderItem->resource->worldcatResource->title;
 					}
 					else{
 						$title="";
 					}
-					if(count($orderItem->resource->worldcatResource->materialType)>0){
+					if(!empty($orderItem->resource->worldcatResource->materialType)){
 						$matType=$orderItem->resource->worldcatResource->materialType;
 					}
 					else{
 						$matType="";
 					}
-					if(count($orderItem->resource->worldcatResource->author)>0){
+					if(!empty($orderItem->resource->worldcatResource->author)){
 						$person1=$orderItem->resource->worldcatResource->author[0];
 					}
 					else{
 						$person1="";
 					}
-					if(count($orderItem->resource->worldcatResource->oclcNumber)>0){
+					if(!empty($orderItem->resource->worldcatResource->oclcNumber)){
 						$ocn=$orderItem->resource->worldcatResource->oclcNumber;
 					}
 					else{
@@ -198,19 +198,19 @@ class Bookfeed extends CI_Controller {
 						$isbn="";
 					}
 					if(property_exists($orderItem,"copyConfigs")){
-						if(count($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)>0){
+						if(!empty($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)){
 							$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;			//Revisit if issue arises with multi-copy orders
 						}
 						else{
 							$fund="";
 						}
-						if(count($orderItem->copyConfigs->copyConfig[0]->receiptStatus)>0){
+						if(!empty($orderItem->copyConfigs->copyConfig[0]->receiptStatus)){
 							$receiptStat=$orderItem->copyConfigs->copyConfig[0]->receiptStatus;						//Revisit if issue arises with multi-copy orders
 						}
 						else{
 							$receiptStat="";
 						}
-						if(count($orderItem->copyConfigs->copyConfig[0]->orderStatus)>0){
+						if(!empty($orderItem->copyConfigs->copyConfig[0]->orderStatus)){
 							$orderStat=$orderItem->copyConfigs->copyConfig[0]->orderStatus;							//Revisit if issue arises with multi-copy orders
 						}
 						else{
@@ -222,7 +222,7 @@ class Bookfeed extends CI_Controller {
 						$receiptStat="";
 						$orderStat="";
 					}
-					if(count($orderItem->insertTime)>0){
+					if(!empty($orderItem->insertTime)){
 						$orderDateTS=$orderItem->insertTime;							//Revisit if issue arises with multi-copy orders
 						$orderDate=date("Y:m:d",$orderDateTS/1000);						//OCLC's timestamp is 13-digit, we need Unix format (in seconds vs milliseconds)
 					}
@@ -264,13 +264,13 @@ class Bookfeed extends CI_Controller {
 				if(array_key_exists(0,$dataP2)){
 					for($c=0;$c<count($dataP2);$c++){
 						$copyObj=$dataP2[$c];											//Under what circumstances will there be multiple elements in this array? Multiple copies?
-						if(count($copyObj->holdingLocation)>0){
+						if(!empty($copyObj->holdingLocation)){
 							$branch=$copyObj->holdingLocation;
 						}
 						else{
 							$branch="";
 						}
-						if(count($copyObj->shelvingLocation)>0){
+						if(!empty($copyObj->shelvingLocation)){
 							$location=$copyObj->shelvingLocation;
 						}
 						else{
@@ -279,7 +279,7 @@ class Bookfeed extends CI_Controller {
 						
 						/* ------------------------------- */
 						if(!empty($copyObj->shelvingDesignation)){
-							if(count($copyObj->shelvingDesignation->information)>0){
+							if(!empty($copyObj->shelvingDesignation->information)){
 								$callNum=$copyObj->shelvingDesignation->information;
 								foreach($copyObj->shelvingDesignation->itemPart as $cutter){
 									$callNum=$callNum." ".$cutter;						//Revisit to implement spacing nuances (Dewey might have different needs)
@@ -292,7 +292,7 @@ class Bookfeed extends CI_Controller {
 						else{
 							$callNum="";
 						}
-						if(count($copyObj->holding[0]->pieceDesignation)>0){			//Revisit to ensure that there aren't ever multiple "holdings" children in this type of data
+						if(!empty($copyObj->holding[0]->pieceDesignation)){			//Revisit to ensure that there aren't ever multiple "holdings" children in this type of data
 							$barcode=$copyObj->holding[0]->pieceDesignation[0];
 						}
 						else{
@@ -340,19 +340,19 @@ class Bookfeed extends CI_Controller {
 					$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 					$dataP=json_decode($data);
 					if(property_exists($dataP,"copyConfigs")){
-						if(count($dataP->copyConfigs->copyConfig>0) && !empty($dataP->copyConfigs->copyConfig[0]->booking) && count($dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)>0){
+						if(!empty($dataP->copyConfigs->copyConfig) && !empty($dataP->copyConfigs->copyConfig[0]->booking) && !empty($dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)){
 							$fund=$dataP->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;	//Revisit if issue arises with multi-copy orders
 						}
 						else{
 							$fund="";
 						}
-						if(count($dataP->copyConfigs->copyConfig[0]->receiptStatus)>0){
+						if(!empty($dataP->copyConfigs->copyConfig[0]->receiptStatus)){
 							$receiptStat=$dataP->copyConfigs->copyConfig[0]->receiptStatus;				//Revisit if issue arises with multi-copy orders
 						}
 						else{
 							$receiptStat="";
 						}
-						if(count($dataP->copyConfigs->copyConfig[0]->orderStatus)>0){
+						if(!empty($dataP->copyConfigs->copyConfig[0]->orderStatus)){
 							$orderStat=$dataP->copyConfigs->copyConfig[0]->orderStatus;					//Revisit if issue arises with multi-copy orders
 						}
 						else{
@@ -428,25 +428,25 @@ class Bookfeed extends CI_Controller {
 						$resourceURLp1="https://acq.sd00.worldcat.org";
 						$data=$this->oclcTransmit($resourceURLp1,$resourceURLp2);
 						$dataP=json_decode($data);
-						if(count($dataP->resource->worldcatResource->oclcNumber)>0){
+						if(!empty($dataP->resource->worldcatResource->oclcNumber)){
 							$ocnNew=$dataP->resource->worldcatResource->oclcNumber;
 						}
 						else{
 							$ocnNew="";
 						}
-						if(count($dataP->resource->worldcatResource->title)>0){
+						if(!empty($dataP->resource->worldcatResource->title)){
 							$title=$dataP->resource->worldcatResource->title;
 						}
 						else{
 							$title="";
 						}
-						if(count($dataP->resource->worldcatResource->materialType)>0){
+						if(!empty($dataP->resource->worldcatResource->materialType)){
 							$matType=$dataP->resource->worldcatResource->materialType;
 						}
 						else{
 							$matType="";
 						}
-						if(count($dataP->resource->worldcatResource->author)>0){
+						if(!empty($dataP->resource->worldcatResource->author)){
 							$person1=$dataP->resource->worldcatResource->author[0];
 						}
 						else{

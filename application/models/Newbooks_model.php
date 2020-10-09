@@ -115,7 +115,7 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function getOINfromOCN($ocn,$date){
-		$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'received' AND ocn = '".$ocn."' AND orderDate >= '".$date."';");
+		$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND ocn = '".$ocn."' AND orderDate >= '".$date."';"); //changed RECEIVED to uppercase -rg
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$orderItemNum=$result->orderItemNum;
@@ -246,7 +246,9 @@ class Newbooks_model extends CI_Model{
 					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."';");
 				}
 				else{
+				
 					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."';");
+					
 				}
 			}
 			else if($type=='format'){
@@ -270,7 +272,9 @@ class Newbooks_model extends CI_Model{
 					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
 				}
 				else{
+					
 					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."';");
+					
 				}
 			}
 			else if($type=='subject' && $ageDeterminant=='receipt'){
@@ -301,6 +305,7 @@ class Newbooks_model extends CI_Model{
 				//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");<br />".var_dump($data);
 			}
 		}
+		
 		$resultsList=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -369,7 +374,9 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	public function updateItem($orderItemNum,$ocnNew,$title,$matType,$person1,$isbn){
-		$data=$this->db->query("UPDATE item SET ocn='".$ocnNew."', title='".addslashes($title)."', matType='".$matType."', person1='".addslashes($person1)."', isbn='".addslashes($isbn)."' WHERE orderItemNum='".$orderItemNum."'");
+		//$data=$this->db->query("UPDATE item SET ocn='".$ocnNew."', title='".addslashes($title)."', matType='".$matType."', person1='".addslashes($person1)."', isbn='".addslashes($isbn)."' WHERE orderItemNum='".$orderItemNum."'");
+		$data=$this->db->query("UPDATE item SET ocn='".$ocnNew."', title=".$this->db->escape($title).", matType='".$matType."', person1=".$this->db->escape($person1).", isbn=".$this->db->escape($isbn)." WHERE orderItemNum='".$orderItemNum."'");
+
 		return $data;
 	}
 	

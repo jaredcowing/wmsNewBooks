@@ -153,90 +153,95 @@ class Bookfeed extends CI_Controller {
 				$newAdds=array();
 				foreach($dataP2 as $orderItem){
 					$orderItemNum=$orderItem->orderItemNumber;
-					if(!empty($orderItem->resource->worldcatResource->title)){
-						$title=$orderItem->resource->worldcatResource->title;
-					}
-					else{
-						$title="";
-					}
-					if(!empty($orderItem->resource->worldcatResource->materialType)){
-						$matType=$orderItem->resource->worldcatResource->materialType;
-					}
-					else{
-						$matType="";
-					}
-					if(!empty($orderItem->resource->worldcatResource->author)){
-						$person1=$orderItem->resource->worldcatResource->author[0];
-					}
-					else{
-						$person1="";
-					}
-					if(!empty($orderItem->resource->worldcatResource->oclcNumber)){
-						$ocn=$orderItem->resource->worldcatResource->oclcNumber;
-					}
-					else{
-						$ocn="";
-					}
-					$ISBNcount=sizeof($orderItem->resource->worldcatResource->isbn);
-					if($ISBNcount>0){												//Seek 13-digit if one exists, otherwise use 10 (Does LibraryThing have a preferred ISBN format?)
-						$ISBN13Flag=false;
-						for($c=0;$c<$ISBNcount;$c++){
-							if(strlen($orderItem->resource->worldcatResource->isbn[$c])==13||substr($orderItem->resource->worldcatResource->isbn[$c],0,3)=='978'){
-								$isbn=substr($orderItem->resource->worldcatResource->isbn[$c],0,13);
-								$ISBN13Flag=true;
-								break;
+					if (isset($orderItem->resource->worldcatResource)){
+						if(!empty($orderItem->resource->worldcatResource->title)){
+							$title=$orderItem->resource->worldcatResource->title;
+						}
+						else{
+							$title="";
+						}
+						if(!empty($orderItem->resource->worldcatResource->materialType)){
+							$matType=$orderItem->resource->worldcatResource->materialType;
+						}
+						else{
+							$matType="";
+						}
+						if(!empty($orderItem->resource->worldcatResource->author)){
+							$person1=$orderItem->resource->worldcatResource->author[0];
+						}
+						else{
+							$person1="";
+						}
+						if(!empty($orderItem->resource->worldcatResource->oclcNumber)){
+							$ocn=$orderItem->resource->worldcatResource->oclcNumber;
+						}
+						else{
+							$ocn="";
+						}
+						$ISBNcount=sizeof($orderItem->resource->worldcatResource->isbn);
+						if($ISBNcount>0){												//Seek 13-digit if one exists, otherwise use 10 (Does LibraryThing have a preferred ISBN format?)
+							$ISBN13Flag=false;
+							for($c=0;$c<$ISBNcount;$c++){
+								if(strlen($orderItem->resource->worldcatResource->isbn[$c])==13||substr($orderItem->resource->worldcatResource->isbn[$c],0,3)=='978'){
+									$isbn=substr($orderItem->resource->worldcatResource->isbn[$c],0,13);
+									$ISBN13Flag=true;
+									break;
+								}
+							}
+							if($ISBN13Flag==false){
+								$isbn=$orderItem->resource->worldcatResource->isbn[0];
+							}
+							if(strlen($isbn)>0&&strpos($isbn," ")>0){					//Just in case an ISBN with text sneaks in, just take the number
+								$isbn=substr($isbn,0,strpos($isbn," ")-1);
 							}
 						}
-						if($ISBN13Flag==false){
-							$isbn=$orderItem->resource->worldcatResource->isbn[0];
+						else{
+							$isbn="";
 						}
-						if(strlen($isbn)>0&&strpos($isbn," ")>0){					//Just in case an ISBN with text sneaks in, just take the number
-							$isbn=substr($isbn,0,strpos($isbn," ")-1);
-						}
-					}
-					else{
-						$isbn="";
-					}
-					if(property_exists($orderItem,"copyConfigs")){
-						if(!empty($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)){
-							$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;			//Revisit if issue arises with multi-copy orders
+						if(property_exists($orderItem,"copyConfigs")){
+							if(!empty($orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode)){
+								$fund=$orderItem->copyConfigs->copyConfig[0]->booking[0]->budgetAccountCode;			//Revisit if issue arises with multi-copy orders
+							}
+							else{
+								$fund="";
+							}
+							if(!empty($orderItem->copyConfigs->copyConfig[0]->receiptStatus)){
+								$receiptStat=$orderItem->copyConfigs->copyConfig[0]->receiptStatus;						//Revisit if issue arises with multi-copy orders
+							}
+							else{
+								$receiptStat="";
+							}
+							if(!empty($orderItem->copyConfigs->copyConfig[0]->orderStatus)){
+								$orderStat=$orderItem->copyConfigs->copyConfig[0]->orderStatus;							//Revisit if issue arises with multi-copy orders
+							}
+							else{
+								$orderStat="";
+							}
 						}
 						else{
 							$fund="";
-						}
-						if(!empty($orderItem->copyConfigs->copyConfig[0]->receiptStatus)){
-							$receiptStat=$orderItem->copyConfigs->copyConfig[0]->receiptStatus;						//Revisit if issue arises with multi-copy orders
-						}
-						else{
 							$receiptStat="";
-						}
-						if(!empty($orderItem->copyConfigs->copyConfig[0]->orderStatus)){
-							$orderStat=$orderItem->copyConfigs->copyConfig[0]->orderStatus;							//Revisit if issue arises with multi-copy orders
-						}
-						else{
 							$orderStat="";
 						}
-					}
-					else{
-						$fund="";
-						$receiptStat="";
-						$orderStat="";
-					}
-					if(!empty($orderItem->insertTime)){
-						$orderDateTS=$orderItem->insertTime;							//Revisit if issue arises with multi-copy orders
-						$orderDate=date("Y:m:d",$orderDateTS/1000);						//OCLC's timestamp is 13-digit, we need Unix format (in seconds vs milliseconds)
-					}
-					else{
-						$orderDate="";
-					}
-					$coverURL=$this->googleTransmit($isbn);								//Retrieve cover image from Google Books API
-					$msg=$this->Newbooks_model->saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL);
-					if($msg=='ok'){
-						array_push($newAdds,$title);
-						echo "<br />".$title;
-						if($receiptStat=="RECEIVED"){
-							$this->autoLoadCopies($ocn);
+						if(!empty($orderItem->insertTime)){
+							$orderDateTS=$orderItem->insertTime;							//Revisit if issue arises with multi-copy orders
+							$orderDate=date("Y:m:d",$orderDateTS/1000);						//OCLC's timestamp is 13-digit, we need Unix format (in seconds vs milliseconds)
 						}
+						else{
+							$orderDate="";
+						}
+						$coverURL=$this->googleTransmit($isbn);								//Retrieve cover image from Google Books API
+						$msg=$this->Newbooks_model->saveOrderItem($orderNum,$orderItemNum,$title,$matType,$person1,$ocn,$isbn,$fund,$orderStat,$receiptStat,$orderDate,$coverURL);
+						if($msg=='ok'){
+							array_push($newAdds,$title);
+							echo "<br />".$title;
+							if($receiptStat=="RECEIVED"){
+								$this->autoLoadCopies($ocn);
+							}
+						}
+					}
+					else{
+						echo "<br />Non-WorldCat item not imported: ".$orderItemNum.": ";
 					}
 				}
 				return($newAdds);

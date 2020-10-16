@@ -202,7 +202,7 @@ class Bookview extends CI_Controller {
 		else{
 			$this->load->view('templates/headerM',$data);
 		}
-		echo "<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='/newBooks/images/spinning-wheel.gif'></img></div>";		//Using inline style to ensure it's applied early in the load process
+		echo "<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='" . $baseURL ."/images/spinning-wheel.gif'></img></div>";		//Using inline style to ensure it's applied early in the load process
 		if($type=='format'){
 			$fundPad='SFORMAT_';
 		}

@@ -223,7 +223,7 @@ class Bookview extends CI_Controller {
 			if($type=='subject'){
 				$subjDict=$this->newbooksconfig->getSubjectDict();
 			}
-			//echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='" . $baseURL ."/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
+			$this->output->append_output ("<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='" . $baseURL ."/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>");		//Make this link read from newbooksconfig
 			$this->output->append_output("<br /><div class='resultsHead'><strong>");
 			if($dateCutoff=='none'){
 				if($type=='subject'){ $this->output->append_output("New ".$subjDict[$facet]." books and videos "); }

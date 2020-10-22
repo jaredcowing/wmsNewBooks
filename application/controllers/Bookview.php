@@ -350,7 +350,7 @@ class Bookview extends CI_Controller {
 		$config['last_tag_open'] = "<div class='pagLast'>";
 		$config['last_tag_close'] = "</div>";
 		$this->pagination->initialize($config);
-		/*echo*/ $this->output->append_output($this->pagination->create_links());
+		$this->output->append_output($this->pagination->create_links());
 		$this->load->view('templates/footer');
 	}
 	

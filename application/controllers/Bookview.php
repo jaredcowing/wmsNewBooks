@@ -202,7 +202,7 @@ class Bookview extends CI_Controller {
 		else{
 			$this->load->view('templates/headerM',$data);
 		}
-		echo "<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='" . $baseURL ."/images/spinning-wheel.gif'></img></div>";		//Using inline style to ensure it's applied early in the load process
+		$this->output->append_output("<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='" . $baseURL ."/images/spinning-wheel.gif'></img></div>");	//Using inline style to ensure it's applied early in the load process
 		if($type=='format'){
 			$fundPad='SFORMAT_';
 		}
@@ -210,7 +210,7 @@ class Bookview extends CI_Controller {
 			$fundPad="";
 		}
 		if(empty($list)){
-			echo "<br />There's nothing new to show for this ".$type." & time. Try extending how far back to show new books from.<br /><br />";
+			$this->output->append_output("<br />There's nothing new to show for this ".$type." & time. Try extending how far back to show new books from.<br /><br />");
 			$data['age']=$age;
 			$data['fund']=$facet;		//Consider renaming data sent to view since can now contain format
 			$data['subjDict']=$this->newbooksconfig->getSubjectDict();
@@ -223,41 +223,40 @@ class Bookview extends CI_Controller {
 			if($type=='subject'){
 				$subjDict=$this->newbooksconfig->getSubjectDict();
 			}
-			echo "<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='" . $baseURL ."/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>";		//Make this link read from newbooksconfig
-			
-			echo "<br /><div class='resultsHead'><strong>";
+			$this->output->append_output ("<a href='".$baseURL."/index.php/Bookview/repeat/".$age."/".$fundPad.urlencode($facet)."/".$size."'><div id='newBooksBack' role='button' tabindex='0'><img src='" . $baseURL ."/images/ic_arrow_back_black_24dp_2x.png' alt='New books search: Go back'></img></div></a>");		//Make this link read from newbooksconfig
+			$this->output->append_output("<br /><div class='resultsHead'><strong>");
 			if($dateCutoff=='none'){
-				if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos "; }
-				else if($type=='format'){ echo "New ".$facet." "; }
+				if($type=='subject'){ $this->output->append_output("New ".$subjDict[$facet]." books and videos "); }
+				else if($type=='format'){ $this->output->append_output("New ".$facet." "); }
 			}
 			else if($dateCutoff!='ordered'){
-				if($facet=='All'){ echo "All newly bought books and videos from the last "; }
-				else if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos bought from the last "; }
-				else if($type=='format'){ echo "New ".$facet." bought from the last "; }
+				if($facet=='All'){ $this->output->append_output("All newly bought books and videos from the last "); }
+				else if($type=='subject'){ $this->output->append_output("New ".$subjDict[$facet]." books and videos bought from the last "); }
+				else if($type=='format'){ $this->output->append_output("New ".$facet." bought from the last "); }
 				switch($age){
 					case '1M':
-						echo "1 month";
+						$this->output->append_output("1 month");
 						break;
 					case '3M':
-						echo "3 months";
+						$this->output->append_output("3 months");
 						break;
 					case '6M':
-						echo "6 months";
+						$this->output->append_output("6 months");
 						break;
 					case '1Y':
-						echo "1 year";
+						$this->output->append_output("1 year");
 						break;
 					case '2Y':
-						echo "2 years";
+						$this->output->append_output("2 years");
 						break;
 				}
 			}
 			else if($dateCutoff=='ordered'){
-				if($facet=='All'){ echo "All books and videos expected soon"; }
-				else if($type=='subject'){ echo "New ".$subjDict[$facet]." books and videos expected soon"; }
-				else if($type=='format'){ echo "New ".$facet." expected soon"; }
+				if($facet=='All'){ $this->output->append_output("All books and videos expected soon"); }
+				else if($type=='subject'){ $this->output->append_output("New ".$subjDict[$facet]." books and videos expected soon"); }
+				else if($type=='format'){ $this->output->append_output("New ".$facet." expected soon"); }
 			}
-			echo ":</strong></div><br /><br /><br />";
+			$this->output->append_output(":</strong></div><br /><br /><br />");
 		}
 		$ocns=array();
 		$echoString="";
@@ -330,7 +329,7 @@ class Bookview extends CI_Controller {
 				$echoString.="</div></div></a>";
 			}
 		}
-		echo $echoString;
+		$this->output->append_output($echoString);
 		$data['baseURL']=$this->newbooksconfig->getBaseURL();
 		$config['base_url']=$data['baseURL'].'/index.php/Bookview/viewFAS/'.$facet.'/'.$age.'/'.$size;
 		$config['total_rows']=$resultsTotal;
@@ -351,7 +350,7 @@ class Bookview extends CI_Controller {
 		$config['last_tag_open'] = "<div class='pagLast'>";
 		$config['last_tag_close'] = "</div>";
 		$this->pagination->initialize($config);
-		echo $this->pagination->create_links();
+		$this->output->append_output($this->pagination->create_links());
 		$this->load->view('templates/footer');
 	}
 	

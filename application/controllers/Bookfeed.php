@@ -78,7 +78,7 @@ class Bookfeed extends CI_Controller {
 						foreach($dataP2 as $order){
 							$orderCount++;
 							$orderDate=$order->insertTime;
-							if(date("Y:m:d",$orderDate/1000)>$statuteLimitations){		//If order was placed after statute of limitations
+							if(date("Y-m-d",$orderDate/1000)>$statuteLimitations){		//If order was placed after statute of limitations
 								$msg=$this->Newbooks_model->saveOrder($order->purchaseOrderNumber);
 								if($msg=='ok'){
 									array_push($newAdds,$order->purchaseOrderNumber);
@@ -90,7 +90,7 @@ class Bookfeed extends CI_Controller {
 									echo $msg;
 								}
 							}
-							else{echo "<br />".$order->purchaseOrderNumber." ignored b/c ".date("Y:m:d",$orderDate/1000);					//Remove after testing
+							else{echo "<br />".$order->purchaseOrderNumber." ignored b/c ".date("Y-m-d",$orderDate/1000);					//Remove after testing
 								echo " precedes statute.";
 							}
 						}
@@ -225,7 +225,7 @@ class Bookfeed extends CI_Controller {
 						}
 						if(!empty($orderItem->insertTime)){
 							$orderDateTS=$orderItem->insertTime;							//Revisit if issue arises with multi-copy orders
-							$orderDate=date("Y:m:d",$orderDateTS/1000);						//OCLC's timestamp is 13-digit, we need Unix format (in seconds vs milliseconds)
+							$orderDate=date("Y-m-d",$orderDateTS/1000);						//OCLC's timestamp is 13-digit, we need Unix format (in seconds vs milliseconds)
 						}
 						else{
 							$orderDate="";

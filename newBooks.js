@@ -1,20 +1,5 @@
 $(document).ready(function(){
 	var baseURL="https://jaredcowing.com/newBooks";	//Put your base URL here, without end slash
-	window.onload=function(){
-	
-	$('.cover').each(function(){
-		if($(this).height()>80){
-			$(this).parent().addClass('coverUnfaded').find('.details').addClass('whiteBG').hide().parent().find('.title').addClass('whiteBG').hide().parent().css('background-color','transparent');
-			$(this).parent().append("<div class='bookMask'></div>");
-			$(this).css({'width':'200px','height':'auto','max-height':'250px'});
-		}
-		else{
-			$(this).remove();
-		}
-	});
-	$('.bookMask').hide();
-	}
-	$('#loadingCover').remove();
 	
 	$('body').on('keypress click','#newBooksGo',function(e){				//Just in case fund code has URL characters
 		
@@ -71,3 +56,18 @@ $(document).ready(function(){
 		$(this).remove();
 	});
 });
+
+window.onload=function(){
+	$('.cover').each(function(){
+		if($(this).height()>80){
+			$(this).parent().addClass('coverUnfaded').find('.details').addClass('whiteBG').hide().parent().find('.title').addClass('whiteBG').hide().parent().css('background-color','transparent');
+			$(this).parent().append("<div class='bookMask'></div>");
+			$(this).css({'width':'200px','height':'auto','max-height':'250px'});
+		}
+		else{
+			$(this).remove();
+		}
+	});
+	$('.bookMask').hide();
+	$('#loadingCover').remove();
+};

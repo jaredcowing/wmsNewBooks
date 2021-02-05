@@ -205,34 +205,26 @@ class Newbooks_model extends CI_Model{
 	
 	public function loadList($fund){
 		if($fund=='all'){
-			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED'  GROUP BY ocn;");
 		}
 		else{
-			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."';");
+			$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$fund."'  GROUP BY ocn;");
 		}
 		$resultsList=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
-			$dupFlag=false;	/* The below de-duplication loop was at last check not working, filtering loop currently active in controller */
-			foreach($resultsList as $resultMaster){
-				if($ocn==$resultMaster[1]){
-					$dupFlag=true;
+			$copiesList=array();
+			$data2=$this->db->get_where('copy',array('ocn' => $ocn));
+			foreach($data2->result() as $result2){
+				if(strlen($result2->callNum)>0){
+					array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
 				}
 			}
-			if($dupFlag==false){
-				$copiesList=array();
-				$data2=$this->db->get_where('copy',array('ocn' => $ocn));
-				foreach($data2->result() as $result2){
-					if(strlen($result2->callNum)>0){
-						array_push($copiesList,array($result2->branch,$result2->location,$result2->callNum));
-					}
-				}
-				if(sizeOf($copiesList)>0){
-					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
-				}
-				else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
-					array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
-				}
+			if(sizeOf($copiesList)>0){
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,$copiesList,$result->matType,$result->isbn));			//Will the uneven dimensions cause problem?
+			}
+			else if($date=='ordered'&&$copyIgnore==false){			//No copies exist (may or may not be marked received)
+				array_push($resultsList,array($result->title,$result->ocn,$result->coverURL,array(array(" "," ","On order")),$result->matType,$result->isbn));
 			}
 		}
 		return $resultsList;
@@ -243,11 +235,11 @@ class Newbooks_model extends CI_Model{
 			$statuteLimitations=$this->newbooksconfig->getStatute();
 			if($type=='subject'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."';");
+					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' GROUP BY ocn;");
 				}
 				else{
 				
-					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND orderDate >= '".$statuteLimitations."' AND fund = '".$facet."' GROUP BY ocn;");
 					
 				}
 			}
@@ -262,27 +254,27 @@ class Newbooks_model extends CI_Model{
 					default:
 						$sqlstring="matType='BOOK'";
 				}
-				$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND receiptStat = 'RECEIVED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.");");
+				$data=$this->db->query("SELECT * FROM item WHERE orderStat != 'CANCELLED' AND receiptStat = 'RECEIVED' AND orderDate >= '".$statuteLimitations."' AND (".$sqlstring.") GROUP BY ocn;");
 			}
 		}
 		else{
 			$dateInTime=strtotime($date);
 			if($type=='subject' && $ageDeterminant=='order'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' GROUP BY ocn;");
 				}
 				else{
 					
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND fund = '".$facet."' GROUP BY ocn;");
 					
 				}
 			}
 			else if($type=='subject' && $ageDeterminant=='receipt'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' GROUP BY ocn;");
 				}
 				else{
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."';");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."' GROUP BY ocn;");
 				}
 			}
 			else if($type=='format'){
@@ -297,10 +289,10 @@ class Newbooks_model extends CI_Model{
 						$sqlstring="matType='BOOK'";
 				}
 				if($ageDeterminant=='order'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");");
+					$data=$this->db->query("SELECT * FROM item WHERE orderDate >= '".$date."' AND receiptStat = 'RECEIVED' AND (".$sqlstring.") GROUP BY ocn;");
 				}
 				else if($ageDeterminant=='receipt'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.");");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.") GROUP BY ocn;");
 				}
 				//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");<br />".var_dump($data);
 			}

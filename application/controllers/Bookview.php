@@ -158,11 +158,6 @@ class Bookview extends CI_Controller {
 				$dateCutoff='ordered';
 			}
 			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
-			/* De-duplication currently happens later during display, which can throw off the number of items per page
-			determined up here.
-			If inconsistent number of items per page becomes a bother, de-duplicate up here and see if that additional
-			loop has impact on performance with large results.
-			*/
 			$resultsTotal=count($list);
 			if($resultsTotal>30){
 				$list=array_slice($list,$startPosInt,30);
@@ -204,7 +199,7 @@ class Bookview extends CI_Controller {
 		}
 		$this->output->append_output("<div id='loadingCover' style='width:100%;height:100%;background-color:rgba(255,255,255,.8);position:fixed;z-index:4;'><img class='centerSpin' style='position:relative;width:24px;left:50%;top:50px;' src='" . $baseURL ."/images/spinning-wheel.gif'></img></div>");	//Using inline style to ensure it's applied early in the load process
 		if($type=='format'){
-			$fundPad='SFORMAT_';
+			$fundPad='SFormat_';
 		}
 		else{
 			$fundPad="";
@@ -261,7 +256,6 @@ class Bookview extends CI_Controller {
 		$ocns=array();
 		$echoString="";
 		foreach($list as $result){
-			$dupFlag=false;
 			$start=0;
 			while(strpos($result[0],'?',$start)!=false){		//My database doesn't handle extended unicode characters, so remove any question mark not followed by a space.
 				$point=strpos($result[0],'?',$start);
@@ -278,67 +272,61 @@ class Bookview extends CI_Controller {
 					$start=0;
 				}
 			}
-			foreach($ocns as $ocn){
-				if($result[1]==$ocn){
-					$dupFlag=true;
-				}
-			}
-			if($dupFlag==false){
-				array_push($ocns,$result[1]);
-				$echoString.="<a href='".$catalogURL."/oclc/".$result[1]."' target='_blank'><div class='book'>";
 
-				if($result[4]=="BOOK"){
-					$echoString.="<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";
-				}
-				else if($result[4]=="VIDEO_DVD"){
-					$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='dvd format'></img>";
-				}
-				else if($result[4]=="VIDEO_BLURAY"){
-					$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
-				}
-				if(substr($result[2],-5)!="isbn/"){
-					if($result[5]!=0){
-						if($size!='t'){		//Default method for determining the URL of a book cover.
-							if($result[2]!=""){
-								$echoString.="<img class='cover' src='".$result[2]."' alt='".$result[0]." cover image'></img>";
-							}
-							//Currently if no Google Books cover URL on file, videos will try to get an image from Library Thing and books will try OpenLibrary.
-							else if($result[4]=='VIDEO_DVD'||$result[4]=='VIDEO_BLURAY'){
-								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
-							}
-							else{
-								$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
-							}
+			array_push($ocns,$result[1]);
+			$echoString.="<a href='".$catalogURL."/oclc/".$result[1]."' target='_blank'><div class='book'>";
+
+			if($result[4]=="BOOK"){
+				$echoString.="<img class='format' src='".$baseURL."/images/book.png' alt='book format'></img>";
+			}
+			else if($result[4]=="VIDEO_DVD"){
+				$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='dvd format'></img>";
+			}
+			else if($result[4]=="VIDEO_BLURAY"){
+				$echoString.="<img class='format' src='".$baseURL."/images/dvd.png' alt='bluray format'></img>";
+			}
+			if(substr($result[2],-5)!="isbn/"){
+				if($result[5]!=0){
+					if($size!='t'){		//Default method for determining the URL of a book cover.
+						if($result[2]!=""){
+							$echoString.="<img class='cover' src='".$result[2]."' alt='".$result[0]." cover image'></img>";
 						}
-						else{				//This isn't really a "size," it's triggered when in "testing mode" which forces Google Books cover URL's to be retrieved in real-time. Slow and not recommended.															//Use this space for testing new image loading sources, accessed through viewFAT method
-							/*$coverURL=$this->googleTransmit($result[5]);
-							if($coverURL!="{}"){										//If Google returned an image
-								$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
-							}
-							else{
-								$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
-							}*/
+						//Currently if no Google Books cover URL on file, videos will try to get an image from Library Thing and books will try OpenLibrary.
+						else if($result[4]=='VIDEO_DVD'||$result[4]=='VIDEO_BLURAY'){
+							$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
+						}
+						else{
+							$echoString.="<img class='cover' src='http://covers.openlibrary.org/b/isbn/".$result[5]."-M.jpg' alt='".$result[0]." cover image'></img>";
 						}
 					}
+					else{				//This isn't really a "size," it's triggered when in "testing mode" which forces Google Books cover URL's to be retrieved in real-time. Slow and not recommended.															//Use this space for testing new image loading sources, accessed through viewFAT method
+						/*$coverURL=$this->googleTransmit($result[5]);
+						if($coverURL!="{}"){										//If Google returned an image
+							$echoString.="<img class='cover' src='".$coverURL."' alt='".$result[0]." cover image'></img>";
+						}
+						else{
+							$echoString.="<img class='cover' src='https://www.librarything.com/devkey/".$keysArr[6]."/large/isbn/".$result[5]."' alt='".$result[0]." cover image'></img>";
+						}*/
+					}
 				}
-				$echoString.="<div class='title'>".$result[0]."</div><br /><div class='details'>";
-				foreach($result[3] as $copy){
-					$branch=$this->branchTranslate($copy[0]);
-					$echoString.="<div class='bloc'><div class='branch'>".$branch."</div><div class='location'>".$copy[1]."</div></div><div class='callNum'>".$copy[2]."</div>";
-				}
-				$echoString.="</div></div></a>";
 			}
+			$echoString.="<div class='title'>".$result[0]."</div><br /><div class='details'>";
+			foreach($result[3] as $copy){
+				$branch=$this->branchTranslate($copy[0]);
+				$echoString.="<div class='bloc'><div class='branch'>".$branch."</div><div class='location'>".$copy[1]."</div></div><div class='callNum'>".$copy[2]."</div>";
+			}
+			$echoString.="</div></div></a>";
 		}
 		$this->output->append_output($echoString);
 		$data['baseURL']=$this->newbooksconfig->getBaseURL();
-		$config['base_url']=$data['baseURL'].'/index.php/Bookview/viewFAS/'.$facet.'/'.$age.'/'.$size;
+		$config['base_url']=$data['baseURL'].'/index.php/Bookview/viewFAS/'.$fundPad.urlencode($facet).'/'.$age.'/'.$size;
 		$config['total_rows']=$resultsTotal;
 		$config['per_page']=30;
 		$config['full_tag_open'] = "<div class='pag'>";
 		$config['full_tag_close'] = '</div>';
 		$config['first_tag_open'] = "<div class='pagFirst'>";
 		$config['first_tag_close'] = '</div>';
-		$config['first_url'] = $data['baseURL'].'/index.php/Bookview/viewFAS/'.$facet.'/'.$age.'/'.$size.'/0';
+		$config['first_url'] = $data['baseURL'].'/index.php/Bookview/viewFAS/'.$fundPad.urlencode($facet).'/'.$age.'/'.$size.'/0';
 		$config['prev_tag_open'] = "<div class='pagPrev'>";
 		$config['prev_tag_close'] = '</div>';
 		$config['cur_tag_open'] = "<div class='pagCur'>";

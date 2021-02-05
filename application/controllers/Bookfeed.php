@@ -395,9 +395,10 @@ class Bookfeed extends CI_Controller {
 	public function testBranchE($ph){
 		$baseURL=$this->newbooksconfig->getBaseURL();
 		$userok=$this->session->all_userdata();
+		$statuteLimitations=$this->newbooksconfig->getStatute();
 		if(array_key_exists('ok', $userok)) {
 			if($userok['ok']=='yes'){
-				$list=$this->Newbooks_model->loadBranchE();
+				$list=$this->Newbooks_model->loadBranchE($statuteLimitations);
 				var_dump($list);
 			}
 			else{	//Userok 'ok' exists but invalid
@@ -424,7 +425,7 @@ class Bookfeed extends CI_Controller {
 					$list=$this->Newbooks_model->loadCallProc();
 				}
 				else{
-					$list=$this->Newbooks_model->loadBranchE();
+					$list=$this->Newbooks_model->loadBranchE($statuteLimitations);
 				}
 				foreach($list as $ocn){
 					$orderItemNums=$this->Newbooks_model->getOINfromOCN($ocn,$statuteLimitations);		//Will return a match ONLY if item is marked received (otherwise no point looking for copy info) and ordered after cutoff date

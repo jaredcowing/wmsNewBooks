@@ -26,6 +26,23 @@ class Bookview extends CI_Controller {
 		$this->load->view('templates/menu',$data);
 		$this->load->view('templates/footer');
 	}
+	
+	/* For calculating cutoff date, sometimes "padding" for cataloging and change-of-year is needed */
+	public function dateRecalc($origDate,$monthsBack){
+		$monthPad=$this->newbooksconfig->getMonthPad();
+		$newMonth=intval(substr($origDate,5,6))-$monthsBack-$monthPad;
+		$yearsBack=0;
+		while($newMonth<1){
+			$newMonth=12+$newMonth;
+			$yearsBack++;
+		}
+		if($newMonth<10){
+			$newMonthStr="0".$newMonth;
+		}
+		else{$newMonthStr=strval($newMonth);}
+		$dateCutoff=strval(intval(substr($origDate,0,4))-$yearsBack)."-".$newMonthStr.substr($origDate,7);
+		return $dateCutoff;
+	}
 
 	/* Load main menu, but remember some settings from a previous search. */
 	public function repeat($age,$facet,$size)
@@ -81,10 +98,9 @@ class Bookview extends CI_Controller {
 		$age=$args[1];
 		$size=$args[2];
 		if(count($args)>3){
-			$startPos=$args[3];
+			$startPosInt=intval($args[3]);
 		}
-		else{$startPos=0;}
-		$startPosInt=intval($startPos);
+		else{$startPosInt=0;}
 		while(strpos($fund,"%5E")!=FALSE){
 			$whereisit=strpos($fund,"%5E");
 			$fund=substr($fund,0,$whereisit)."&".substr($fund,$whereisit+6);
@@ -96,7 +112,7 @@ class Bookview extends CI_Controller {
 		$fund=urldecode($fund);
 		$date=date('Y-m-d');
 		$dateCutoff="";
-		$monthPad=$this->newbooksconfig->getMonthPad();
+		
 		$ageDeterminant=$this->newbooksconfig->getAgeDeterminant();
 		switch($age){
 			case '2Y':
@@ -106,43 +122,16 @@ class Bookview extends CI_Controller {
 				$dateCutoff=strval(intval(substr($date,0,4))-1).substr($date,4);
 				break;
 			case '6M':
-				if(strval(substr($date,5,6))>=(7+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-6-$monthPad);
-					if($newMonth<10){
-						$newMonth="0".$newMonth;
-					}
-					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
-				}
-				else{
-					$newMonth=strval(intval(substr($date,5,6))+(6-$monthPad));
-					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
-				}
+				$monthsBack=6;
+				$dateCutoff=$this->dateRecalc($date,$monthsBack);
 				break;
 			case '3M':
-				if(strval(substr($date,5,6))>=(4+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-3-$monthPad);
-					if($newMonth<10){
-						$newMonth="0".$newMonth;
-					}
-					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
-				}
-				else{
-					$newMonth=strval(intval(substr($date,5,6))+(9-$monthPad));
-					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
-				}
+				$monthsBack=3;
+				$dateCutoff=$this->dateRecalc($date,$monthsBack);
 				break;
 			case '1M':
-				if(strval(substr($date,5,6))>=(2+$monthPad)){
-					$newMonth=strval(intval(substr($date,5,6))-(1+$monthPad));
-					if($newMonth<10){
-						$newMonth="0".$newMonth;
-					}
-					$dateCutoff=substr($date,0,4)."-".$newMonth.substr($date,7);
-				}
-				else{
-					$newMonth=strval(intval(substr($date,5,6))+(11-$monthPad));
-					$dateCutoff=strval(intval(substr($date,0,4))-1)."-".$newMonth.substr($date,7);
-				}
+				$monthsBack=1;
+				$dateCutoff=$this->dateRecalc($date,$monthsBack);
 				break;
 		}
 		if(strlen($dateCutoff)>0||$age=='order'){
@@ -159,9 +148,7 @@ class Bookview extends CI_Controller {
 			}
 			$list=$this->Newbooks_model->loadList2($type,$facet,$dateCutoff,$ageDeterminant);
 			$resultsTotal=count($list);
-			if($resultsTotal>30){
-				$list=array_slice($list,$startPosInt,30);
-			}
+			$list=array_slice($list,$startPosInt,30);
 			$this->displayBookResults($type,$list,$facet,$dateCutoff,$age,$size,$startPosInt,$resultsTotal);				//Fund and cutoff needed for now in case function needs to call itself again with another fund name. These two parameters can be removed when more efficient multi-fund query created.
 		}
 	}
@@ -226,8 +213,8 @@ class Bookview extends CI_Controller {
 			}
 			else if($dateCutoff!='ordered'){
 				if($facet=='All'){ $this->output->append_output("All newly bought books and videos from the last "); }
-				else if($type=='subject'){ $this->output->append_output("New ".$subjDict[$facet]." books and videos bought from the last "); }
-				else if($type=='format'){ $this->output->append_output("New ".$facet." bought from the last "); }
+				else if($type=='subject'){ $this->output->append_output("Newly bought ".$subjDict[$facet]." books and videos that have arrived in the last "); }
+				else if($type=='format'){ $this->output->append_output("Newly bought ".$facet." that have arrived in the last "); }
 				switch($age){
 					case '1M':
 						$this->output->append_output("1 month");

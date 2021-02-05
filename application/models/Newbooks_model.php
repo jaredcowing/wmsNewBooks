@@ -126,8 +126,8 @@ class Newbooks_model extends CI_Model{
 	}
 	
 	/* Return all copies with no branch or call number information (a way of defining "in processing") */
-	public function loadBranchE(){
-		$data=$this->db->query("SELECT * FROM copy WHERE (branch = '' OR callNum = '');");
+	public function loadBranchE($statute){
+		$data=$this->db->query("SELECT * FROM copy WHERE dateLoaded >= '".$statute."' AND (branch = '' OR callNum = '');");
 		$resultsArr=array();
 		foreach($data->result() as $result){
 			$ocn=$result->ocn;
@@ -271,10 +271,10 @@ class Newbooks_model extends CI_Model{
 			}
 			else if($type=='subject' && $ageDeterminant=='receipt'){
 				if($facet=='All'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' GROUP BY ocn;");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptDate >= '".$date."' AND receiptStat = 'RECEIVED' GROUP BY ocn;");
 				}
 				else{
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND fund = '".$facet."' GROUP BY ocn;");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptDate >= '".$date."' AND receiptStat = 'RECEIVED' AND fund = '".$facet."' GROUP BY ocn;");
 				}
 			}
 			else if($type=='format'){
@@ -292,7 +292,7 @@ class Newbooks_model extends CI_Model{
 					$data=$this->db->query("SELECT * FROM item WHERE orderDate >= '".$date."' AND receiptStat = 'RECEIVED' AND (".$sqlstring.") GROUP BY ocn;");
 				}
 				else if($ageDeterminant=='receipt'){
-					$data=$this->db->query("SELECT * FROM item WHERE receiptStat = 'RECEIVED' AND (".$sqlstring.") GROUP BY ocn;");
+					$data=$this->db->query("SELECT * FROM item WHERE receiptDate >= '".$date."' AND receiptStat = 'RECEIVED' AND (".$sqlstring.") GROUP BY ocn;");
 				}
 				//echo "SELECT * FROM items WHERE receiptStat = 'RECEIVED' AND orderDate >= '".$date."' AND (".$sqlstring.");<br />".var_dump($data);
 			}

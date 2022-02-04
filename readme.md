@@ -1,3 +1,5 @@
+Note: OCLC has developed a New Books API since the development of this tool. It is recommended you evaluate that API as an alternative to using this tool. The API would allow you to perform some book queries without storing in a local database. If Acquisitions data is needed (like fund codes), this tool may work better than the New Books API.
+
 This service utilizes several APIs to display new books in the library (sorted by fund and date of arrival). It is built on the web framework CodeIgniter, a "rapid development" framework which is useful for quickly writing new features without poring through extensive documentation.
 
 The big picture of how this works (like which APIs it draws from) can be found [here](https://www.oclc.org/content/dam/community/WorldShare/global2019/Presentations/cowing-lightning-talk.pdf), and a working version can be found [here](https://library.woodbury.edu/newbooks).

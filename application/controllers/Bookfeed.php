@@ -628,7 +628,7 @@ class Bookfeed extends CI_Controller {
 				//Now that signature made, put it in an authorization string intended for HTTPheader
 				$authForHeader="Authorization: http://www.worldcat.org/wskey/v2/hmac/v1 clientId=\"".$signatureP1."\", timestamp=\"".$time."\", nonce=\"".$nonce."\", signature=\"".$signature."\", principalID=\"".$principalID."\", principalIDNS=\"".$principalIDNS."\"";
 				//Create HTTPheader using above auth string
-				$header=array("GET ".$resourceURLp2." HTTP/1.1","Accept: application/json",$authForHeader);
+				$header=array("GET ".urlencode($resourceURLp2)." HTTP/1.1","Accept: application/json",$authForHeader);
 				$ua=$keysArr[4];
 				$curl=curl_init($resourceURL);
 				curl_setopt($curl,CURLOPT_POST,false);
